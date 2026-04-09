@@ -181,22 +181,23 @@ function CodeView({ initialFileData }) {
     }, [files]);
 
     return (
-        <div className='relative h-full flex flex-col'>
-            <div className='bg-gray-950/80 backdrop-blur-md w-full px-6 py-3 border-b border-gray-800 flex items-center justify-between'>
-                <div className='flex items-center gap-1 bg-gray-900/50 p-1 rounded-xl border border-gray-800'>
+        <div className='relative h-full flex flex-col bg-black/20'>
+            <div className='bg-gray-950/40 backdrop-blur-2xl w-full px-8 py-5 border-b border-white/5 flex items-center justify-between'>
+                <div className='flex items-center gap-2 bg-black/40 p-1 rounded-2xl border border-white/5 shadow-inner'>
                     {[
-                        { id: 'code', label: 'Code', icon: null },
-                        { id: 'preview', label: 'Live Preview', icon: null }
+                        { id: 'code', label: 'Source', icon: Code2 },
+                        { id: 'preview', label: 'Deployment', icon: Zap }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider ${
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-[0.2em] ${
                                 activeTab === tab.id
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                                    ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]'
+                                    : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                             }`}
                         >
+                            <tab.icon className="h-3.5 w-3.5" />
                             {tab.label}
                         </button>
                     ))}
@@ -204,10 +205,10 @@ function CodeView({ initialFileData }) {
 
                 <button
                     onClick={downloadFiles}
-                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-gray-700 uppercase tracking-widest"
+                    className="flex items-center gap-3 bg-white/5 hover:bg-white/10 text-white px-6 py-2.5 rounded-xl text-[10px] font-black transition-all border border-white/10 uppercase tracking-[0.2em] shadow-2xl active:scale-95"
                 >
-                    <Download className="h-3.5 w-3.5" />
-                    Export Project
+                    <Download className="h-4 w-4 text-blue-400" />
+                    Synchronize Local
                 </button>
             </div>
 

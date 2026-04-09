@@ -197,31 +197,35 @@ export default function LaunchPanel() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 relative overflow-hidden">
-            {/* Animated background grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]">
-                <div className="absolute left-1/2 top-0 h-[500px] w-[1000px] -translate-x-1/2 bg-[radial-gradient(circle_400px_at_50%_300px,#3b82f625,transparent)]" />
-            </div>
+        <div className="min-h-screen bg-gray-950 relative overflow-hidden">
+            {/* Holographic background elements */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
+            <div className="absolute left-1/2 top-0 h-[600px] w-[1200px] -translate-x-1/2 bg-[radial-gradient(circle_500px_at_50%_300px,#3b82f615,transparent)] blur-3xl" />
+            <div className="absolute -left-20 top-1/4 h-[400px] w-[400px] bg-purple-600/10 rounded-full blur-[120px]" />
+            <div className="absolute -right-20 bottom-1/4 h-[400px] w-[400px] bg-blue-600/10 rounded-full blur-[120px]" />
 
-            <div className="relative z-10">
-                {/* Header */}
-                <header className="border-b border-gray-800 bg-gray-950/50 backdrop-blur-xl sticky top-0">
-                    <div className="container mx-auto px-4 py-6">
+            <div className="relative z-10 flex flex-col min-h-screen">
+                {/* Modern Glass Header */}
+                <header className="border-b border-white/5 bg-gray-950/40 backdrop-blur-2xl sticky top-0 z-50">
+                    <div className="container mx-auto px-6 py-5">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                            <div className="flex items-center gap-4 group cursor-pointer" onClick={() => router.push('/')}>
+                                <div className="p-2.5 bg-gradient-to-tr from-blue-600 via-blue-500 to-purple-600 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:scale-105 transition-transform duration-300">
                                     <Code2 className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white">AI Website Builder</h1>
-                                    <p className="text-sm text-gray-400">Launch your next project in seconds</p>
+                                    <h1 className="text-xl font-black text-white tracking-tighter uppercase">AI Website Builder</h1>
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Online</p>
+                                    </div>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowSettings(true)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors"
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all duration-300 font-bold text-xs uppercase tracking-widest active:scale-95"
                             >
-                                <Settings className="h-4 w-4" />
+                                <Settings className="h-4 w-4 text-blue-400" />
                                 Settings
                             </button>
                         </div>
@@ -318,164 +322,190 @@ export default function LaunchPanel() {
                 )}
 
                 {/* Main Content */}
-                <main className="container mx-auto px-4 py-12">
-                    {/* Hero Section */}
-                    <div className="text-center space-y-8 mb-16">
-                        <div>
-                            <div className="inline-flex items-center justify-center space-x-2 bg-blue-500/20 rounded-full px-6 py-3 mb-6 border border-blue-500/30">
+                <main className="container mx-auto px-6 py-16 flex-1">
+                    {/* Futuristic Hero Section */}
+                    <div className="text-center space-y-10 mb-20">
+                        <div className="relative inline-block">
+                            <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full" />
+                            <div className="relative inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-6 py-2.5 backdrop-blur-md">
                                 <Sparkles className="h-5 w-5 text-blue-400 animate-pulse" />
-                                <span className="text-blue-400 text-sm font-semibold tracking-wide">
-                                    POWERED BY GENERATIVE AI
+                                <span className="text-blue-400 text-xs font-black uppercase tracking-[0.3em]">
+                                    Engine v2.0 • Flash Accelerated
                                 </span>
                             </div>
-                            <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight">
-                                Code the Impossible
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter">
+                                CODE THE<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">IMPOSSIBLE.</span>
                             </h2>
-                            <p className="text-xl text-gray-400 mt-4 max-w-2xl mx-auto">
-                                Describe your vision and let AI transform it into production-ready code. Choose to create custom or use one of our templates.
+                            <p className="text-lg text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
+                                Transform your abstract visions into production-grade digital experiences using high-fidelity generative intelligence.
                             </p>
                         </div>
                     </div>
 
-                    {/* Main Input Section */}
-                    <div className="max-w-4xl mx-auto mb-12">
-                        <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-2xl p-6 shadow-2xl">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                                    Describe Your Project
-                                </label>
-                                <textarea
-                                    value={userInput}
-                                    onChange={(e) => setUserInput(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="e.g., Create a modern e-commerce store with product listings, shopping cart, and user authentication..."
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                                    rows="4"
-                                />
-                                
-                                {/* Input Actions */}
-                                <div className="flex gap-3 flex-wrap">
-                                    <button
-                                        onClick={enhancePrompt}
-                                        disabled={!userInput || isEnhancing}
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-200 rounded-lg transition-colors"
-                                    >
-                                        {isEnhancing ? (
-                                            <><Loader2 className="h-4 w-4 animate-spin" /> Enhancing...</>
-                                        ) : (
-                                            <><Wand2 className="h-4 w-4" /> Enhance Prompt</>
-                                        )}
-                                    </button>
+                    {/* Futuristic Input Terminal */}
+                    <div className="max-w-4xl mx-auto mb-20">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+                            <div className="relative bg-gray-900 border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                                            Input Terminal // Project Description
+                                        </label>
+                                        <div className="flex gap-1">
+                                            <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                                            <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                                            <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                                        </div>
+                                    </div>
                                     
-                                    <button
-                                        onClick={() => onGenerate(userInput)}
-                                        disabled={!userInput || isGenerating}
-                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all font-semibold"
-                                    >
-                                        {isGenerating ? (
-                                            <><Loader2 className="h-4 w-4 animate-spin" /> Launching...</>
-                                        ) : (
-                                            <><Send className="h-4 w-4" /> Launch Workspace</>
-                                        )}
-                                    </button>
+                                    <textarea
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="e.g., Construct a high-performance e-commerce engine with biometric auth and real-time inventory..."
+                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-6 py-5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 resize-none font-mono text-lg min-h-[160px] transition-all shadow-inner"
+                                    />
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={enhancePrompt}
+                                            disabled={!userInput || isEnhancing}
+                                            className="flex items-center gap-3 px-6 py-3.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl border border-white/10 transition-all font-bold text-xs uppercase tracking-widest"
+                                        >
+                                            {isEnhancing ? (
+                                                <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing...</>
+                                            ) : (
+                                                <><Wand2 className="h-4 w-4 text-purple-400" /> Enhance Architecture</>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            onClick={() => onGenerate(userInput)}
+                                            disabled={!userInput || isGenerating}
+                                            className="flex-1 flex items-center justify-center gap-3 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(37,99,235,0.3)] active:scale-95"
+                                        >
+                                            {isGenerating ? (
+                                                <><Loader2 className="h-4 w-4 animate-spin" /> Synthesizing...</>
+                                            ) : (
+                                                <><Send className="h-4 w-4" /> Initialize Workspace</>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="max-w-4xl mx-auto mb-8">
-                        <div className="flex gap-4 border-b border-gray-800">
+                    {/* Modern Tab System */}
+                    <div className="max-w-4xl mx-auto mb-10">
+                        <div className="flex gap-8 border-b border-white/5 p-1">
                             <button
                                 onClick={() => setActiveTab('create')}
-                                className={`px-4 py-3 font-semibold transition-colors ${
+                                className={`pb-4 px-2 font-black text-xs uppercase tracking-[0.2em] transition-all relative ${
                                     activeTab === 'create'
-                                        ? 'text-blue-400 border-b-2 border-blue-400'
-                                        : 'text-gray-400 hover:text-gray-300'
+                                        ? 'text-blue-400'
+                                        : 'text-gray-500 hover:text-gray-300'
                                 }`}
                             >
                                 ✨ Quick Start
+                                {activeTab === 'create' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 shadow-[0_0_10px_#60a5fa]" />}
                             </button>
                             <button
                                 onClick={() => setActiveTab('templates')}
-                                className={`px-4 py-3 font-semibold transition-colors ${
+                                className={`pb-4 px-2 font-black text-xs uppercase tracking-[0.2em] transition-all relative ${
                                     activeTab === 'templates'
-                                        ? 'text-blue-400 border-b-2 border-blue-400'
-                                        : 'text-gray-400 hover:text-gray-300'
+                                        ? 'text-blue-400'
+                                        : 'text-gray-500 hover:text-gray-300'
                                 }`}
                             >
                                 🎨 Templates
+                                {activeTab === 'templates' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 shadow-[0_0_10px_#60a5fa]" />}
                             </button>
                             <button
                                 onClick={() => setActiveTab('recent')}
-                                className={`px-4 py-3 font-semibold transition-colors ${
+                                className={`pb-4 px-2 font-black text-xs uppercase tracking-[0.2em] transition-all relative ${
                                     activeTab === 'recent'
-                                        ? 'text-blue-400 border-b-2 border-blue-400'
-                                        : 'text-gray-400 hover:text-gray-300'
+                                        ? 'text-blue-400'
+                                        : 'text-gray-500 hover:text-gray-300'
                                 }`}
                             >
                                 🕒 Recent
+                                {activeTab === 'recent' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 shadow-[0_0_10px_#60a5fa]" />}
                             </button>
                         </div>
                     </div>
 
                     {/* Content Sections */}
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-4xl mx-auto pb-20">
                         {activeTab === 'create' && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('templates')}>
-                                    <Plus className="h-8 w-8 text-blue-400 mb-3" />
-                                    <h3 className="text-lg font-semibold text-white mb-2">Browse Templates</h3>
-                                    <p className="text-sm text-gray-400">Start from pre-built templates</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:border-blue-500/50 transition-all duration-500 cursor-pointer overflow-hidden" onClick={() => setActiveTab('templates')}>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Plus className="h-10 w-10 text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
+                                    <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tighter">Browse Templates</h3>
+                                    <p className="text-sm text-gray-500 font-medium leading-relaxed">Synthesize new environments from pre-configured architectural patterns.</p>
                                 </div>
                                 
-                                <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('recent')}>
-                                    <Clock className="h-8 w-8 text-blue-400 mb-3" />
-                                    <h3 className="text-lg font-semibold text-white mb-2">Recent Projects</h3>
-                                    <p className="text-sm text-gray-400">View your previous work</p>
+                                <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-500 cursor-pointer overflow-hidden" onClick={() => setActiveTab('recent')}>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Clock className="h-10 w-10 text-purple-400 mb-6 group-hover:scale-110 transition-transform" />
+                                    <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tighter">Recent Projects</h3>
+                                    <p className="text-sm text-gray-500 font-medium leading-relaxed">Reconnect with existing project streams and continue neural synthesis.</p>
                                 </div>
                                 
-                                <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 opacity-50 cursor-not-allowed">
-                                    <Palette className="h-8 w-8 text-gray-500 mb-3" />
-                                    <h3 className="text-lg font-semibold text-gray-400 mb-2">Customize Settings</h3>
-                                    <p className="text-sm text-gray-500">Coming soon...</p>
+                                <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:border-pink-500/50 transition-all duration-500 cursor-pointer overflow-hidden" onClick={() => setShowSettings(true)}>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Palette className="h-10 w-10 text-pink-400 mb-6 group-hover:scale-110 transition-transform" />
+                                    <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tighter">Global Settings</h3>
+                                    <p className="text-sm text-gray-500 font-medium leading-relaxed">Calibrate AI parameters and interface aesthetics for peak performance.</p>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'recent' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {recentWorkspaces.length > 0 ? (
                                     recentWorkspaces.map((ws) => (
                                         <div
                                             key={ws._id}
                                             onClick={() => handleRecentClick(ws._id)}
-                                            className="group bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 hover:shadow-xl transition-all cursor-pointer"
+                                            className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 cursor-pointer overflow-hidden shadow-2xl"
                                         >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-2 bg-blue-500/10 rounded-lg">
-                                                    <Code2 className="h-6 w-6 text-blue-400" />
+                                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="relative z-10">
+                                                <div className="flex justify-between items-start mb-6">
+                                                    <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                                                        <Code2 className="h-6 w-6 text-purple-400" />
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest bg-black/40 px-2.5 py-1 rounded-full border border-white/5">
+                                                        {new Date(ws._creationTime).toLocaleDateString()}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] text-gray-500 font-mono">
-                                                    {new Date(ws._creationTime).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors truncate">
-                                                {ws.name || 'Untitled Project'}
-                                            </h3>
-                                            <p className="text-sm text-gray-400 mb-4 line-clamp-2 italic">
-                                                "{ws.messages?.[0]?.content.slice(0, 100)}..."
-                                            </p>
-                                            <div className="flex items-center text-blue-400 text-sm font-medium">
-                                                Continue Editing <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                                <h3 className="text-xl font-black text-white mb-3 group-hover:text-purple-400 transition-colors truncate tracking-tighter">
+                                                    {ws.name || 'DECRYPTED STREAM'}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 font-medium mb-6 line-clamp-2 italic leading-relaxed">
+                                                    "{ws.messages?.[0]?.content.slice(0, 100)}..."
+                                                </p>
+                                                <div className="flex items-center text-purple-400 text-xs font-black uppercase tracking-widest">
+                                                    Resync Connection <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                                                </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="col-span-full py-12 text-center bg-gray-900/30 border border-dashed border-gray-800 rounded-2xl">
-                                        <Clock className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                                        <h3 className="text-lg font-medium text-gray-400">No recent projects</h3>
-                                        <p className="text-gray-500">Start a new project to see it here!</p>
+                                    <div className="col-span-full py-20 text-center bg-white/5 border border-dashed border-white/10 rounded-3xl backdrop-blur-sm">
+                                        <div className="relative inline-block mb-6">
+                                            <Clock className="h-16 w-16 text-gray-700 animate-pulse" />
+                                            <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full" />
+                                        </div>
+                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-tighter">Memory Banks Empty</h3>
+                                        <p className="text-gray-600 font-medium mt-2">Initialize your first project to begin data persistence.</p>
                                     </div>
                                 )}
                             </div>
@@ -487,16 +517,21 @@ export default function LaunchPanel() {
                                     <div
                                         key={template.id}
                                         onClick={() => handleTemplateClick(template)}
-                                        className="group bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-pointer"
+                                        className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 cursor-pointer overflow-hidden shadow-2xl"
                                     >
-                                        <div className="text-4xl mb-4">{template.icon}</div>
-                                        <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="text-5xl mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 drop-shadow-2xl">
+                                            {template.icon}
+                                        </div>
+                                        <h3 className="text-xl font-black text-white mb-3 group-hover:text-blue-400 transition-colors uppercase tracking-tighter">
                                             {template.name}
                                         </h3>
-                                        <p className="text-sm text-gray-400 mb-4">{template.description}</p>
+                                        <p className="text-sm text-gray-500 font-medium mb-6 leading-relaxed">
+                                            {template.description}
+                                        </p>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">AI Generated</span>
-                                            <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+                                            <span className="text-[10px] font-black bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest">Blueprint</span>
+                                            <ArrowRight className="h-5 w-5 text-gray-600 group-hover:text-blue-400 group-hover:translate-x-2 transition-all duration-300" />
                                         </div>
                                     </div>
                                 ))}

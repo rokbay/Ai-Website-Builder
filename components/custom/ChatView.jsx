@@ -11,31 +11,31 @@ import ReactMarkdown from 'react-markdown';
 
 const MessageItem = memo(({ msg, index }) => (
     <div
-        className={`group relative flex gap-3 p-4 transition-colors ${
+        className={`group relative flex gap-4 p-6 transition-all duration-300 ${
             msg.role === 'user' 
-                ? 'bg-blue-500/5 border-l-2 border-l-blue-500'
-                : 'bg-purple-500/5 border-l-2 border-l-purple-500'
+                ? 'bg-white/5 border-b border-white/5'
+                : 'bg-transparent border-b border-white/5'
         }`}
     >
-        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+        <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shadow-2xl transition-transform group-hover:scale-110 ${
             msg.role === 'user'
-                ? 'bg-blue-600 text-white'
-                : 'bg-purple-600 text-white'
+                ? 'bg-gradient-to-br from-blue-600 to-blue-400 text-white'
+                : 'bg-gradient-to-br from-purple-600 to-pink-500 text-white'
         }`}>
-            {msg.role === 'user' ? 'U' : 'AI'}
+            {msg.role === 'user' ? 'USR' : 'SYS'}
         </div>
         <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${
+            <div className="flex items-center justify-between mb-2">
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${
                     msg.role === 'user' ? 'text-blue-400' : 'text-purple-400'
                 }`}>
-                    {msg.role === 'user' ? 'You' : 'Assistant'}
+                    {msg.role === 'user' ? 'User Stream' : 'Neural Core Response'}
                 </span>
             </div>
-            <ReactMarkdown className="text-sm text-gray-200 leading-relaxed prose prose-invert prose-sm max-w-none break-words
-                prose-p:mt-0 prose-p:mb-2 prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-code:text-blue-300">
-                {msg.content}
-            </ReactMarkdown>
+            <div className="text-sm text-gray-300 leading-relaxed prose prose-invert prose-sm max-w-none break-words
+                prose-p:mt-0 prose-p:mb-3 prose-strong:text-white prose-code:text-blue-300 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl">
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
         </div>
     </div>
 ));
@@ -154,20 +154,27 @@ function ChatView() {
     }, [setMessages]);
 
     return (
-        <div className="relative h-full flex flex-col bg-gray-950">
+        <div className="relative h-full flex flex-col bg-gray-950/50 backdrop-blur-3xl overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-blue-500/20 rounded-lg">
-                        <Send className="h-4 w-4 text-blue-400" />
+            <div className="px-6 py-5 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600/10 border border-blue-500/20 rounded-lg">
+                        <Cpu className="h-4 w-4 text-blue-400" />
                     </div>
-                    <span className="font-bold text-white tracking-tight">AI Assistant</span>
+                    <div>
+                        <span className="block text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Live Stream</span>
+                        <span className="block text-xs font-black text-white uppercase tracking-tighter">Neural Interface</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Linked</span>
                 </div>
             </div>
 
             {/* Chat Messages */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
-                <div className="divide-y divide-gray-800/50">
+                <div className="flex flex-col">
                     {Array.isArray(messages) && messages?.map((msg, index) => (
                         <MessageItem key={index} msg={msg} index={index} />
                     ))}
@@ -177,55 +184,54 @@ function ChatView() {
                         <MessageItem msg={{ role: 'ai', content: streamingContent }} index={messages.length} />
                     )}
 
-                    {loading && (
-                        <div className="p-6 bg-gray-900/20 border-t border-gray-800">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <div className="relative">
-                                        <div className="h-5 w-5 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
-                                    </div>
-                                    <p className="text-xs font-medium uppercase tracking-widest">
-                                        {!streamingContent ? 'Thinking...' : 'Typing...'}
-                                    </p>
-                                </div>
-                                {abortController && (
-                                    <button
-                                        onClick={stopGeneration}
-                                        className="text-[10px] uppercase font-bold tracking-tighter bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1 rounded transition-all border border-red-500/20"
-                                    >
-                                        Abort
-                                    </button>
-                                )}
+                    {loading && !streamingContent && (
+                        <div className="p-8 flex flex-col items-center justify-center space-y-4 opacity-50">
+                            <div className="relative">
+                                <div className="h-10 w-10 rounded-xl border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
+                                <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full" />
                             </div>
+                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] animate-pulse">Initializing Synthesis...</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Input Section */}
-            <div className="p-4 bg-gray-900/80 backdrop-blur-md border-t border-gray-800">
+            <div className="p-6 bg-black/40 backdrop-blur-2xl border-t border-white/5">
                 <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500" />
                     <textarea
-                        placeholder="Ask me to modify the code..."
+                        placeholder="Inquire or command..."
                         value={userInput}
                         onChange={(event) => setUserInput(event.target.value)}
-                        className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 pr-12 text-sm text-white placeholder-gray-500 focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all duration-300 resize-none h-24 shadow-inner"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                if (userInput.trim() && !loading) onGenerate(userInput);
+                            }
+                        }}
+                        className="relative w-full bg-black/60 border border-white/5 rounded-xl p-5 pr-14 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-all duration-300 resize-none h-28 font-medium shadow-inner"
                     />
                     <button
                         onClick={() => onGenerate(userInput)}
                         disabled={!userInput.trim() || loading}
-                        className={`absolute right-3 bottom-3 p-2 rounded-lg transition-all duration-300 ${
+                        className={`absolute right-4 bottom-4 p-2.5 rounded-lg transition-all duration-500 ${
                             userInput.trim() && !loading
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-100'
-                                : 'bg-gray-800 text-gray-600 scale-90 opacity-50 cursor-not-allowed'
+                                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-100'
+                                : 'bg-white/5 text-gray-700 scale-90 opacity-50 cursor-not-allowed'
                         }`}
                     >
                         <Send className="h-4 w-4" />
                     </button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-2 text-center uppercase tracking-widest opacity-50">
-                    Enter to send • Shift + Enter for new line
-                </p>
+                <div className="flex items-center justify-between mt-4">
+                    <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Shift+Enter for newline</span>
+                    <div className="flex gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500/30" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500/30" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-pink-500/30" />
+                    </div>
+                </div>
             </div>
         </div>
     );

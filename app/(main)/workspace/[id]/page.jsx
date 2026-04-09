@@ -50,10 +50,12 @@ const Workspace = () => {
 
     return (
         <div className="h-screen bg-gray-950 relative overflow-hidden flex flex-col">
-            <BackgroundPattern />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
+            <div className="absolute left-1/2 top-0 h-[600px] w-[1200px] -translate-x-1/2 bg-[radial-gradient(circle_500px_at_50%_300px,#3b82f615,transparent)] blur-3xl" />
+
             <div className='relative z-10 flex-1 overflow-hidden'>
                 <div className='grid grid-cols-1 md:grid-cols-12 h-full'>
-                    <div className="md:col-span-3 h-full border-r border-gray-800 bg-gray-900/30 backdrop-blur-sm">
+                    <div className="md:col-span-3 h-full border-r border-white/5 bg-gray-950/40 backdrop-blur-3xl shadow-2xl">
                         <ChatView />
                     </div>
                     <div className='md:col-span-9 h-full overflow-hidden bg-black/20'>
