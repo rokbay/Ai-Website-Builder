@@ -70,7 +70,18 @@ namespace AiWebsiteBuilder.Services
         {
             try
             {
-                var result = RunCommand("node", "--version");
+                string command = "node";
+                string[] commonPaths = {
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "node.exe"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "nodejs", "node.exe")
+                };
+
+                foreach (var path in commonPaths)
+                {
+                    if (File.Exists(path)) { command = path; break; }
+                }
+
+                var result = RunCommand(command, "--version");
 
                 if (result.Success)
                 {
@@ -112,7 +123,20 @@ namespace AiWebsiteBuilder.Services
         {
             try
             {
-                var result = RunCommand("npm", "--version");
+                string command = "npm";
+                string[] commonPaths = {
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "npm.cmd"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "nodejs", "npm.cmd"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "nvm", "npm.cmd"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Roaming", "npm", "npm.cmd")
+                };
+
+                foreach (var path in commonPaths)
+                {
+                    if (File.Exists(path)) { command = path; break; }
+                }
+
+                var result = RunCommand(command, "--version");
 
                 if (result.Success)
                 {
@@ -154,14 +178,40 @@ namespace AiWebsiteBuilder.Services
         {
             var url = Environment.GetEnvironmentVariable("NEXT_PUBLIC_CONVEX_URL");
 
+            // Also check .env.local as a fallback
             if (string.IsNullOrEmpty(url))
+            {
+                try
+                {
+                    var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    var binPath = Path.GetDirectoryName(executablePath);
+                    var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
+                    var envPath = Path.Combine(projectRoot, ".env.local");
+
+                    if (File.Exists(envPath))
+                    {
+                        var lines = File.ReadAllLines(envPath);
+                        foreach (var line in lines)
+                        {
+                            if (line.Contains("NEXT_PUBLIC_CONVEX_URL="))
+                            {
+                                url = line.Split('=', 2)[1].Trim();
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            if (string.IsNullOrEmpty(url) || url.Contains("your_convex_deployment_url"))
             {
                 return new DiagnosticResult
                 {
                     Name = "Convex Configuration",
-                    Status = "WARNING",
-                    Message = "NEXT_PUBLIC_CONVEX_URL environment variable not set",
-                    Severity = DiagnosticSeverity.Warning
+                    Status = "ERROR",
+                    Message = "NEXT_PUBLIC_CONVEX_URL not set or contains placeholder. Edit .env.local",
+                    Severity = DiagnosticSeverity.Error
                 };
             }
 
@@ -169,7 +219,7 @@ namespace AiWebsiteBuilder.Services
             {
                 Name = "Convex Configuration",
                 Status = "OK",
-                Message = $"Convex URL is configured",
+                Message = $"Convex URL: {url.Substring(0, Math.Min(20, url.Length))}...",
                 Severity = DiagnosticSeverity.Info
             };
         }
