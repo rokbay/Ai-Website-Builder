@@ -7,7 +7,7 @@ import { MessagesContext } from '@/context/MessagesContext';
 function Provider({children}) {
   const [messages,setMessages]=useState();
   return (
-    <div>
+    <div className="bg-[#020617] min-h-screen">
       <MessagesContext.Provider value={{messages,setMessages}}>
         <NextThemesProvider
             attribute="class"

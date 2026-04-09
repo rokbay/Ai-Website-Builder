@@ -43,37 +43,42 @@ export const NotificationDisplay = () => {
         };
     }, []);
 
-    const getSeverityColor = (severity) => {
+    const getSeverityStyles = (severity) => {
         switch (severity) {
             case 'error':
-                return 'bg-red-900 border-red-700 text-red-100';
+                return 'bg-red-500/10 border-red-500/20 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.1)]';
             case 'warning':
-                return 'bg-yellow-900 border-yellow-700 text-yellow-100';
+                return 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.1)]';
             case 'success':
-                return 'bg-green-900 border-green-700 text-green-100';
+                return 'bg-green-500/10 border-green-500/20 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.1)]';
             default:
-                return 'bg-blue-900 border-blue-700 text-blue-100';
+                return 'bg-blue-500/10 border-blue-500/20 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.1)]';
         }
     };
 
     return (
-        <div className="fixed bottom-4 right-4 space-y-2 max-w-md z-50">
+        <div className="fixed bottom-8 right-8 space-y-3 max-w-xs z-[200] font-sans">
             {/* Current Status */}
             <div
-                className={`p-3 rounded border ${getSeverityColor(statusSeverity)} text-sm`}
+                className={`p-4 rounded-2xl backdrop-blur-xl border ${getSeverityStyles(statusSeverity)} transition-all duration-500 transform hover:scale-105`}
             >
-                <div className="font-semibold">Status</div>
-                <div className="text-xs opacity-90">{currentStatus}</div>
+                <div className="flex items-center gap-2 mb-1">
+                    <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${
+                        statusSeverity === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                    }`} />
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">System Status</div>
+                </div>
+                <div className="text-xs font-bold leading-tight uppercase tracking-tighter">{currentStatus}</div>
             </div>
 
             {/* Notification Queue */}
             {notifications.map((notif) => (
                 <div
                     key={notif.id}
-                    className={`p-3 rounded border ${getSeverityColor(notif.severity)} text-sm`}
+                    className={`p-4 rounded-2xl backdrop-blur-xl border ${getSeverityStyles(notif.severity)} animate-in fade-in slide-in-from-right-4 duration-500 transform hover:scale-105`}
                 >
-                    <div className="font-semibold text-xs opacity-75">{notif.type}</div>
-                    <div className="text-xs opacity-90">{notif.message}</div>
+                    <div className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">{notif.type}</div>
+                    <div className="text-xs font-medium leading-relaxed">{notif.message}</div>
                 </div>
             ))}
         </div>
