@@ -80,6 +80,8 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="ConfigButton" Click="ConfigButton_Click" Margin="0,0,8,0"
+                            Style="{StaticResource ModernButton}" Content="CONFIG" />
                     <Button Name="RefreshButton" Click="RefreshButton_Click" Margin="0,0,8,0"
                             Style="{StaticResource ModernButton}" Content="RELOAD" />
                     <Button Name="DevToolsButton" Click="DevToolsButton_Click" 

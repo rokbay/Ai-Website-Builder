@@ -316,19 +316,24 @@ namespace AiWebsiteBuilder.Views
                 var binPath = Path.GetDirectoryName(executablePath);
                 var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
 
-                _nextJsProcess = new Process
+                // Resolve npm path robustly
+                string npmCommand = ResolveNpmPath();
+
+                var startInfo = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "cmd.exe",
-                        Arguments = "/c npm run dev",
-                        WorkingDirectory = projectRoot,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
+                    FileName = "cmd.exe",
+                    Arguments = $"/c \"{npmCommand}\" run dev",
+                    WorkingDirectory = projectRoot,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
                 };
+
+                // Load and inject .env.local variables
+                LoadEnvFile(projectRoot, startInfo);
+
+                _nextJsProcess = new Process { StartInfo = startInfo };
 
                 _nextJsProcess.OutputDataReceived += (s, e) =>
                 {
@@ -368,6 +373,78 @@ namespace AiWebsiteBuilder.Views
             }
         }
 
+        private string ResolveNpmPath()
+        {
+            // 1. Try system PATH
+            if (CanRunCommand("npm --version")) return "npm";
+
+            // 2. Try common installation paths
+            string[] commonPaths = {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "npm.cmd"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "nodejs", "npm.cmd"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "nvm", "npm.cmd"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "Roaming", "npm", "npm.cmd")
+            };
+
+            foreach (var path in commonPaths)
+            {
+                if (File.Exists(path)) return path;
+            }
+
+            // 3. Last resort - check env path again or assume global
+            return "npm";
+        }
+
+        private bool CanRunCommand(string command)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {command}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                };
+                using var proc = Process.Start(psi);
+                return proc?.WaitForExit(2000) ?? false;
+            }
+            catch { return false; }
+        }
+
+        private void LoadEnvFile(string projectRoot, ProcessStartInfo startInfo)
+        {
+            string envPath = Path.Combine(projectRoot, ".env.local");
+            if (!File.Exists(envPath)) return;
+
+            try
+            {
+                var lines = File.ReadAllLines(envPath);
+                foreach (var line in lines)
+                {
+                    var trimmed = line.Trim();
+                    if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#")) continue;
+
+                    var parts = trimmed.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        var key = parts[0].Trim();
+                        var value = parts[1].Trim();
+                        // Support values with or without quotes
+                        if (value.StartsWith("\"") && value.EndsWith("\""))
+                            value = value.Substring(1, value.Length - 2);
+
+                        startInfo.EnvironmentVariables[key] = value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Warning: Failed to parse .env.local: {ex.Message}");
+            }
+        }
+
         private bool IsPortInUse(int port)
         {
             try
@@ -386,6 +463,35 @@ namespace AiWebsiteBuilder.Views
             catch
             {
                 return false;
+            }
+        }
+
+        private void ConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                var binPath = Path.GetDirectoryName(executablePath);
+                var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
+                var envPath = Path.Combine(projectRoot, ".env.local");
+
+                if (File.Exists(envPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "notepad.exe",
+                        Arguments = envPath,
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    MessageBox.Show("Config file (.env.local) not found in project root.", "Config Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open config: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
