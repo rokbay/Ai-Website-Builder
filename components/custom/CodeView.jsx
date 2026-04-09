@@ -17,13 +17,12 @@ const SandpackCodeEditor = dynamic(() => import("@codesandbox/sandpack-react").t
 const SandpackPreview = dynamic(() => import("@codesandbox/sandpack-react").then(mod => mod.SandpackPreview), { ssr: false });
 const SandpackFileExplorer = dynamic(() => import("@codesandbox/sandpack-react").then(mod => mod.SandpackFileExplorer), { ssr: false });
 
-function CodeView() {
+function CodeView({ initialFileData }) {
     const { id } = useParams();
     const [activeTab, setActiveTab] = useState('code');
     const [files, setFiles] = useState(Lookup?.DEFAULT_FILE);
     const { messages } = useContext(MessagesContext);
     const UpdateFiles = useMutation(api.workspace.UpdateFiles);
-    const convex = useConvex();
     const [loading, setLoading] = useState(false);
 
     const preprocessFiles = useCallback((files) => {
@@ -42,18 +41,13 @@ function CodeView() {
         return processed;
     }, []);
 
-    const GetFiles = useCallback(async () => {
-        const result = await convex.query(api.workspace.GetWorkspace, {
-            workspaceId: id
-        });
-        const processedFiles = preprocessFiles(result?.fileData || {});
-        const mergedFiles = { ...Lookup.DEFAULT_FILE, ...processedFiles };
-        setFiles(mergedFiles);
-    }, [id, convex, preprocessFiles]);
-
     useEffect(() => {
-        id && GetFiles();
-    }, [id, GetFiles]);
+        if (initialFileData) {
+            const processedFiles = preprocessFiles(initialFileData);
+            const mergedFiles = { ...Lookup.DEFAULT_FILE, ...processedFiles };
+            setFiles(mergedFiles);
+        }
+    }, [initialFileData, preprocessFiles]);
 
     const GenerateAiCode = useCallback(async () => {
         setLoading(true);
