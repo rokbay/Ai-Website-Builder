@@ -1,0 +1,61 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "dotnet-build",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "-c",
+                "Debug",
+                "${workspaceFolder}/AiWebsiteBuilder.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "dotnet-clean",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "clean",
+                "${workspaceFolder}/AiWebsiteBuilder.csproj"
+            ]
+        },
+        {
+            "label": "npm-install",
+            "command": "npm",
+            "type": "shell",
+            "args": [
+                "install"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "npm-run-dev",
+            "command": "npm",
+            "type": "shell",
+            "args": [
+                "run",
+                "dev"
+            ],
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^.*?$",
+                    "code": 0,
+                    "message": 0
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*next.*",
+                    "endsPattern": ".*ready.*"
+                }
+            }
+        }
+    ]
+}

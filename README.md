@@ -102,7 +102,13 @@
   <img src="https://img.shields.io/badge/Gemini_Flash_2.0-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
   <img src="https://img.shields.io/badge/Convex-FF6F61?style=for-the-badge&logo=convex&logoColor=white" alt="Convex" />
   
-  ### 🛠️ Tools & Libraries
+  ### �️ Desktop / Alternative Runtime
+  
+  <img src="https://img.shields.io/badge/.NET_8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET" />
+  <img src="https://img.shields.io/badge/WPF_(CLR)-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="WPF" />
+  <img src="https://img.shields.io/badge/WebView2-0078D4?style=for-the-badge&logo=microsoft-edge&logoColor=white" alt="WebView2" />
+  
+  ### �🛠️ Tools & Libraries
   
   <img src="https://skillicons.dev/icons?i=vercel,git,github,vscode,npm" alt="Tools" />
   
@@ -121,22 +127,49 @@
 
 ### 📋 Prerequisites
 
+**Choose your platform:**
+
 <table>
 <tr>
-<td align="center">
+<td align="center" width="45%">
+
+#### 🌐 Web-Based (Node.js)
+
+<br/>
 
 **Node.js**
 <br/>
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=flat-square&logo=node.js)](https://nodejs.org/)
 
-</td>
-<td align="center">
+<br/>
 
 **Package Manager**
 <br/>
 [![npm](https://img.shields.io/badge/npm-latest-red?style=flat-square&logo=npm)](https://www.npmjs.com/)
 
 </td>
+<td align="center" width="45%">
+
+#### 🖥️ Desktop Application (.NET CLR)
+
+<br/>
+
+**.NET 8 SDK**
+<br/>
+[![.NET Version](https://img.shields.io/badge/.NET-8.0+-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download)
+
+<br/>
+
+**WebView2 Runtime**
+<br/>
+[![Edge Version](https://img.shields.io/badge/Edge%20WebView2-Latest-0078D4?style=flat-square&logo=microsoft-edge)](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
 <td align="center">
 
 **Gemini API**
@@ -161,12 +194,8 @@ git clone https://github.com/Ratna-Babu/ai-website-builder.git
 # Navigate to project directory
 cd ai-website-builder
 
-# Install dependencies
+# Install Node.js dependencies
 npm install
-# or
-yarn install
-# or
-pnpm install
 ```
 
 </details>
@@ -188,8 +217,9 @@ NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
 </details>
 
 <details open>
-<summary><b>3️⃣ Start Development</b></summary>
+<summary><b>3️⃣ Start Development - Choose One:</b></summary>
 
+##### 🌐 Option A: Web-Based (Node.js)
 ```bash
 # Start the development server
 npm run dev
@@ -199,6 +229,45 @@ npx convex dev
 
 # Open http://localhost:3000
 ```
+
+##### 🖥️ Option B: Desktop Application (.NET CLR) - **Recommended if Node.js isn't available**
+
+```bash
+# 1. Install .NET dependencies
+dotnet restore AiWebsiteBuilder.csproj
+
+# 2. In VS Code, select Debug Configuration:
+#    - Press Ctrl+F5 (or open the Debug menu)
+#    - Select "Launch Panel - .NET CLR (Primary)"
+#    - Press F5 to start debugging
+
+# OR run from command line:
+dotnet build -c Debug AiWebsiteBuilder.csproj
+./bin/Debug/net8.0-windows/AiWebsiteBuilder.exe
+```
+
+##### 🌐 Option C: Direct Node.js Terminal - **If you have Node.js installed**
+
+```bash
+# Method 1: If Node.js is in your PATH
+npm install
+npm run dev
+# Visit: http://localhost:3000
+
+# Method 2: If Node.js is not in PATH, use our helper script
+# First find your Node.js installation path:
+# - Open VS Code integrated terminal
+# - Run: where node (copy the path)
+
+# Then run our script:
+.\run-with-nodejs.bat "C:\Path\To\Your\Node.js\Installation"
+# Example: .\run-with-nodejs.bat "C:\Program Files\nodejs"
+
+# PowerShell version:
+.\run-with-nodejs.ps1 -NodePath "C:\Path\To\Your\Node.js\Installation"
+```
+
+**For detailed .NET setup instructions, see [DOTNET_SETUP.md](DOTNET_SETUP.md)**
 
 </details>
 

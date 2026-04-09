@@ -1,0 +1,98 @@
+<Window x:Class="AiWebsiteBuilder.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        mc:Ignorable="d"
+        Title="AI Website Builder - Launch Panel"
+        Width="1400"
+        Height="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F172A"
+        Foreground="#E2E8F0"
+        WindowState="Maximized">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,0,0,1" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#3B82F6" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                        <TextBlock Text="⚡" FontSize="20" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="AI Website Builder" FontSize="20" FontWeight="Bold" Foreground="#E2E8F0" />
+                        <TextBlock Text="Powered by .NET CLR" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="RefreshButton" Click="RefreshButton_Click" Margin="0,0,12,0"
+                            Background="Transparent" Foreground="#E2E8F0" Padding="12,8"
+                            BorderBrush="#475569" BorderThickness="1"
+                            Cursor="Hand">
+                        🔄 Refresh
+                    </Button>
+                    <Button Name="DevToolsButton" Click="DevToolsButton_Click" 
+                            Background="Transparent" Foreground="#E2E8F0" Padding="12,8"
+                            BorderBrush="#475569" BorderThickness="1"
+                            Cursor="Hand">
+                        🛠️ Dev Tools
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- WebView2 Container -->
+        <Border Grid.Row="1" Background="#0F172A">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- WebView2 Control -->
+                <wv2:WebView2 x:Name="WebView" Grid.Row="0" />
+
+                <!-- Status Bar -->
+                <Border Grid.Row="1" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,1,0,0" Padding="12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Name="StatusText" Text="Initializing..." 
+                                   Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Name="AppVersionText" Text=".NET CLR • Window Runtime" 
+                                   Foreground="#64748B" FontSize="11" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Canvas Grid.Row="0" Grid.RowSpan="3" Name="LoadingOverlay" Background="#0F172A" Opacity="0.95" 
+                Visibility="Visible" Panel.ZIndex="1000">
+            <StackPanel Canvas.Left="0" Canvas.Top="0" Canvas.Right="0" Canvas.Bottom="0" 
+                        VerticalAlignment="Center" HorizontalAlignment="Center" Width="300">
+                <TextBlock Text="🚀 Launching AI Website Builder" TextAlignment="Center" 
+                           FontSize="18" FontWeight="Bold" Foreground="#E2E8F0" Margin="0,0,0,16" />
+                <ProgressBar Height="4" Foreground="#3B82F6" IsIndeterminate="True" />
+                <TextBlock Name="LoadingText" Text="Starting Next.js environment..." TextAlignment="Center" 
+                           FontSize="12" Foreground="#94A3B8" Margin="0,16,0,0" />
+            </StackPanel>
+        </Canvas>
+    </Grid>
+</Window>
