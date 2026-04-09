@@ -321,9 +321,7 @@ namespace AiWebsiteBuilder.Views
                 UpdateStatus("Starting Next.js development server...");
 
                 // Find project root from current executable location
-                var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                var binPath = Path.GetDirectoryName(executablePath);
-                var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
+                var projectRoot = LocateProjectRoot();
 
                 // Resolve npm path robustly
                 string npmCommand = ResolveNpmPath();
@@ -483,9 +481,7 @@ namespace AiWebsiteBuilder.Views
         {
             try
             {
-                var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                var binPath = Path.GetDirectoryName(executablePath);
-                var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
+                var projectRoot = LocateProjectRoot();
                 var envPath = Path.Combine(projectRoot, ".env.local");
 
                 if (File.Exists(envPath))
@@ -555,6 +551,32 @@ namespace AiWebsiteBuilder.Views
                 MessageBox.Show($"Failed to test API connectivity:\n{ex.Message}",
                     "API Test Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private static string LocateProjectRoot()
+        {
+            var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var current = Path.GetDirectoryName(executablePath) ?? AppContext.BaseDirectory;
+            current = Path.GetFullPath(current);
+
+            for (int i = 0; i < 6; i++)
+            {
+                var envPath = Path.Combine(current, ".env.local");
+                var csprojFiles = Directory.GetFiles(current, "*.csproj");
+                if (File.Exists(envPath) || csprojFiles.Length > 0)
+                {
+                    return current;
+                }
+
+                var parent = Path.GetDirectoryName(current);
+                if (string.IsNullOrEmpty(parent) || parent == current)
+                {
+                    break;
+                }
+                current = parent;
+            }
+
+            return AppContext.BaseDirectory;
         }
 
         private void UpdateStatus(string message)

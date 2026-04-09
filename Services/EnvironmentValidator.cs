@@ -183,9 +183,7 @@ namespace AiWebsiteBuilder.Services
             {
                 try
                 {
-                    var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                    var binPath = Path.GetDirectoryName(executablePath);
-                    var projectRoot = Path.GetFullPath(Path.Combine(binPath ?? ".", "..", "..", "..", ".."));
+                    var projectRoot = LocateProjectRoot();
                     var envPath = Path.Combine(projectRoot, ".env.local");
 
                     if (File.Exists(envPath))
@@ -222,6 +220,35 @@ namespace AiWebsiteBuilder.Services
                 Message = $"Convex URL: {url.Substring(0, Math.Min(20, url.Length))}...",
                 Severity = DiagnosticSeverity.Info
             };
+        }
+
+        /// <summary>
+        /// Find the repository root by walking up from the executable path
+        /// </summary>
+        private static string LocateProjectRoot()
+        {
+            var executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var current = Path.GetDirectoryName(executablePath) ?? AppContext.BaseDirectory;
+            current = Path.GetFullPath(current);
+
+            for (int i = 0; i < 6; i++)
+            {
+                var envPath = Path.Combine(current, ".env.local");
+                var csprojFiles = Directory.GetFiles(current, "*.csproj");
+                if (File.Exists(envPath) || csprojFiles.Length > 0)
+                {
+                    return current;
+                }
+
+                var parent = Path.GetDirectoryName(current);
+                if (string.IsNullOrEmpty(parent) || parent == current)
+                {
+                    break;
+                }
+                current = parent;
+            }
+
+            return AppContext.BaseDirectory;
         }
 
         /// <summary>

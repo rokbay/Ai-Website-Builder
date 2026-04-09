@@ -1,20 +1,20 @@
 ﻿AiWebsiteBuilder
-
+1.0.0.0
 
 winexe
 C#
 .cs
-C:\Users\ZYAD\Desktop\Ai-Website-Builder\obj\Debug\net8.0-windows\
+c:\Users\ZYAD\Desktop\Ai-Website-Builder\obj\Debug\net8.0-windows\
 AiWebsiteBuilder
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-C:\Users\ZYAD\Desktop\Ai-Website-Builder\App.xaml
+c:\Users\ZYAD\Desktop\Ai-Website-Builder\App.xaml
 2644500958
 3-2022336095
-4979159212
+61925970996
 202-2012877864
 Themes\Dark.xaml;Views\MainWindow.xaml;
 
-False
+True
 
