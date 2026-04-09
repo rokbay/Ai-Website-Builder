@@ -1,8 +1,7 @@
 "use client"
 import { MessagesContext } from '@/context/MessagesContext';
-import { ArrowRight, Link, Loader2Icon, Send } from 'lucide-react';
+import { Link, Loader2Icon, Send } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
-import { useConvex } from 'convex/react';
 import { useParams } from 'next/navigation';
 import { useContext, useEffect, useState, useCallback, memo } from 'react';
 import { useMutation } from 'convex/react';
@@ -37,25 +36,18 @@ MessageItem.displayName = 'MessageItem';
 
 function ChatView() {
     const { id } = useParams();
-    const convex = useConvex();
     const { messages, setMessages } = useContext(MessagesContext);
     const [userInput, setUserInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [streamingContent, setStreamingContent] = useState('');
+    const [abortController, setAbortController] = useState(null);
     const UpdateMessages = useMutation(api.workspace.UpdateWorkspace);
 
-    const GetWorkSpaceData = useCallback(async () => {
-        const result = await convex.query(api.workspace.GetWorkspace, {
-            workspaceId: id
-        });
-        setMessages(result?.messages);
-    }, [id, convex, setMessages]);
-
-    useEffect(() => {
-        id && GetWorkSpaceData();
-    }, [id, GetWorkSpaceData]);
-
     const GetAiResponse = useCallback(async () => {
+        const controller = new AbortController();
+        setAbortController(controller);
         setLoading(true);
+        setStreamingContent('');
         const PROMPT = JSON.stringify(messages) + Prompt.CHAT_PROMPT;
         
         try {
@@ -64,16 +56,14 @@ function ChatView() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                signal: controller.signal,
                 body: JSON.stringify({ prompt: PROMPT }),
             });
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let fullText = '';
-
-            // Add placeholder AI message for streaming
-            const aiMessageIndex = messages.length;
-            setMessages(prev => [...prev, { role: 'ai', content: '' }]);
+            let lastUpdateTime = Date.now();
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -88,19 +78,13 @@ function ChatView() {
                             const data = JSON.parse(line.slice(6));
                             if (data.chunk) {
                                 fullText += data.chunk;
-                                setMessages(prev => {
-                                    const updated = [...prev];
-                                    updated[aiMessageIndex] = { role: 'ai', content: fullText };
-                                    return updated;
-                                });
-                            }
-                            if (data.done && data.result) {
-                                fullText = data.result;
-                                setMessages(prev => {
-                                    const updated = [...prev];
-                                    updated[aiMessageIndex] = { role: 'ai', content: fullText };
-                                    return updated;
-                                });
+
+                                // Batch updates to local state every 50ms for better performance
+                                const now = Date.now();
+                                if (now - lastUpdateTime > 50) {
+                                    setStreamingContent(fullText);
+                                    lastUpdateTime = now;
+                                }
                             }
                         } catch (e) {
                             // Skip invalid JSON
@@ -110,16 +94,31 @@ function ChatView() {
             }
 
             const finalMessages = [...messages, { role: 'ai', content: fullText }];
+            // Update global context ONLY once at the end to prevent heavy CodeView re-renders
+            setMessages(finalMessages);
+            setStreamingContent('');
+
             await UpdateMessages({
                 messages: finalMessages,
                 workspaceId: id
             });
         } catch (error) {
-            console.error('Error getting AI response:', error);
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted');
+            } else {
+                console.error('Error getting AI response:', error);
+            }
         } finally {
             setLoading(false);
+            setAbortController(null);
         }
     }, [messages, id, UpdateMessages, setMessages]);
+
+    const stopGeneration = () => {
+        if (abortController) {
+            abortController.abort();
+        }
+    };
 
     useEffect(() => {
         if (messages?.length > 0) {
@@ -147,11 +146,28 @@ function ChatView() {
                         <MessageItem key={index} msg={msg} index={index} />
                     ))}
                     
+                    {/* Streaming Message */}
+                    {streamingContent && (
+                        <MessageItem msg={{ role: 'ai', content: streamingContent }} index={messages.length} />
+                    )}
+
                     {loading && (
                         <div className="p-4 rounded-lg bg-gray-800/30 border border-gray-700">
-                            <div className="flex items-center gap-3 text-gray-400">
-                                <Loader2Icon className="animate-spin h-5 w-5" />
-                                <p className="font-medium">Generating response...</p>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 text-gray-400">
+                                    <Loader2Icon className="animate-spin h-5 w-5" />
+                                    <p className="font-medium">
+                                        {!streamingContent ? 'Generating response...' : 'AI is typing...'}
+                                    </p>
+                                </div>
+                                {abortController && (
+                                    <button
+                                        onClick={stopGeneration}
+                                        className="text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-full transition-all"
+                                    >
+                                        Stop Generation
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
