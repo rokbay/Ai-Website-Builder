@@ -74,7 +74,7 @@
                         <TextBlock Text="⚡" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" />
                     </Grid>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="AI WEBSITE BUILDER" FontSize="14" FontWeight="Black" Foreground="#F8FAFC" LetterSpacing="2" />
+                        <TextBlock Text="AI WEBSITE BUILDER" FontSize="14" FontWeight="Black" Foreground="#F8FAFC" />
                         <TextBlock Text="v1.0 • .NET HYBRID CORE" FontSize="10" Foreground="#64748B" FontWeight="Bold" Margin="0,2,0,0" />
                     </StackPanel>
                 </StackPanel>
@@ -133,7 +133,7 @@
                 </Grid>
 
                 <TextBlock Text="AI WEBSITE BUILDER" TextAlignment="Center"
-                           FontSize="14" FontWeight="Black" Foreground="#F8FAFC" LetterSpacing="4" Margin="0,0,0,8" />
+                           FontSize="14" FontWeight="Black" Foreground="#F8FAFC" Margin="0,0,0,8" />
                 <TextBlock Name="LoadingText" Text="INITIALIZING HYBRID ENVIRONMENT..." TextAlignment="Center"
                            FontSize="10" Foreground="#64748B" FontWeight="Bold" />
 
