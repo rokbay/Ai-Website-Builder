@@ -2,6 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Provider from "./provider";
 import ConvexClientProvider from "./ConvexClientProvider";
+import { NotificationDisplay } from "@/components/custom/NotificationComponents";
+import ClientInitializer from "./ClientInitializer";
 
 
 export const metadata = {
@@ -15,7 +17,10 @@ export default function RootLayout({ children }) {
       <body>
         <ConvexClientProvider>
         <Provider>
-        {children}
+          <ClientInitializer>
+            {children}
+            <NotificationDisplay />
+          </ClientInitializer>
         </Provider>
         </ConvexClientProvider>
         
