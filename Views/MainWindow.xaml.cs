@@ -442,8 +442,9 @@ namespace AiWebsiteBuilder.Views
         {
             Dispatcher.Invoke(() =>
             {
-                StatusText.Text = message;
-                LoadingText.Text = message;
+                var upperMessage = message.ToUpper();
+                StatusText.Text = upperMessage;
+                LoadingText.Text = upperMessage;
             });
         }
 

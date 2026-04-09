@@ -1,19 +1,64 @@
 "use client"
 import React, { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, useQuery, useConvex } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { MessagesContext } from '@/context/MessagesContext';
-import { Sparkles, ArrowRight, Plus, Clock, Settings, Zap, Wand2, Send, Loader2, Code2, Palette } from 'lucide-react';
+import { Sparkles, ArrowRight, Plus, Clock, Settings, Zap, Wand2, Send, Loader2, Code2, Palette, X, Moon, Sun, Monitor, Cpu } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export default function LaunchPanel() {
     const [userInput, setUserInput] = useState('');
     const [isEnhancing, setIsEnhancing] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [activeTab, setActiveTab] = useState('create'); // 'create' or 'templates'
+    const [activeTab, setActiveTab] = useState('create'); // 'create', 'templates', or 'recent'
+    const [showSettings, setShowSettings] = useState(false);
+    const [recentWorkspaces, setRecentWorkspaces] = useState([]);
+    const { theme, setTheme } = useTheme();
+
+    // Settings State
+    const [settings, setSettingsState] = useState({
+        aiModel: 'gemini-2.0-flash',
+        temperature: 0.7,
+        exportFormat: 'vite-react'
+    });
+
+    useEffect(() => {
+        const savedSettings = localStorage.getItem('app_settings');
+        if (savedSettings) {
+            setSettingsState(JSON.parse(savedSettings));
+        }
+    }, []);
+
+    const updateSettings = (newSettings) => {
+        const updated = { ...settings, ...newSettings };
+        setSettingsState(updated);
+        localStorage.setItem('app_settings', JSON.stringify(updated));
+    };
     const router = useRouter();
     const { messages, setMessages } = useContext(MessagesContext);
     const CreateWorkspace = useMutation(api.workspace.CreateWorkspace);
+    const convex = useConvex();
+
+    // Fetch recent workspaces from localStorage and Convex
+    useEffect(() => {
+        const fetchRecent = async () => {
+            const storedIds = JSON.parse(localStorage.getItem('recent_workspaces') || '[]');
+            if (storedIds.length > 0) {
+                const workspaces = await Promise.all(
+                    storedIds.map(async (id) => {
+                        try {
+                            return await convex.query(api.workspace.GetWorkspace, { workspaceId: id });
+                        } catch (e) {
+                            return null;
+                        }
+                    })
+                );
+                setRecentWorkspaces(workspaces.filter(w => w !== null));
+            }
+        };
+        fetchRecent();
+    }, [convex]);
 
     // Sample templates for quick launch
     const templates = [
@@ -72,8 +117,15 @@ export default function LaunchPanel() {
             }
             setMessages(msg);
             const workspaceID = await CreateWorkspace({
-                messages: [msg]
+                messages: [msg],
+                name: input.slice(0, 40) + (input.length > 40 ? '...' : '')
             });
+
+            // Store in localStorage for "Recent Projects"
+            const storedIds = JSON.parse(localStorage.getItem('recent_workspaces') || '[]');
+            const updatedIds = [workspaceID, ...storedIds.filter(id => id !== workspaceID)].slice(0, 10);
+            localStorage.setItem('recent_workspaces', JSON.stringify(updatedIds));
+
             router.push('/workspace/' + workspaceID);
         } catch (error) {
             console.error('Error generating workspace:', error);
@@ -133,6 +185,10 @@ export default function LaunchPanel() {
         onGenerate(template.prompt);
     };
 
+    const handleRecentClick = (workspaceId) => {
+        router.push('/workspace/' + workspaceId);
+    };
+
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -161,12 +217,105 @@ export default function LaunchPanel() {
                                     <p className="text-sm text-gray-400">Launch your next project in seconds</p>
                                 </div>
                             </div>
-                            <button className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">
-                                ⚙️ Settings
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors"
+                            >
+                                <Settings className="h-4 w-4" />
+                                Settings
                             </button>
                         </div>
                     </div>
                 </header>
+
+                {/* Settings Modal */}
+                {showSettings && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <Settings className="h-5 w-5 text-blue-400" />
+                                    Preferences
+                                </h3>
+                                <button
+                                    onClick={() => setShowSettings(false)}
+                                    className="p-1 hover:bg-gray-800 rounded-full transition-colors"
+                                >
+                                    <X className="h-6 w-6 text-gray-400" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                {/* Appearance */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Appearance</label>
+                                    <div className="flex gap-2 p-1 bg-gray-950 rounded-xl border border-gray-800">
+                                        {[
+                                            { id: 'dark', icon: Moon, label: 'Dark' },
+                                            { id: 'light', icon: Sun, label: 'Light' },
+                                            { id: 'system', icon: Monitor, label: 'System' }
+                                        ].map((t) => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setTheme(t.id)}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    theme === t.id
+                                                        ? 'bg-blue-600 text-white shadow-lg'
+                                                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900'
+                                                }`}
+                                            >
+                                                <t.icon className="h-4 w-4" />
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* AI Configuration */}
+                                <div className="space-y-4 pt-2 border-t border-gray-800">
+                                    <label className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Cpu className="h-4 w-4" /> AI Engine
+                                    </label>
+
+                                    <div className="space-y-2">
+                                        <p className="text-xs text-gray-500">Model Selection</p>
+                                        <select
+                                            value={settings.aiModel}
+                                            onChange={(e) => updateSettings({ aiModel: e.target.value })}
+                                            className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        >
+                                            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest)</option>
+                                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Most Capable)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <p className="text-xs text-gray-500">Temperature (Creativity)</p>
+                                            <span className="text-xs text-blue-400 font-mono">{settings.temperature}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0" max="1" step="0.1"
+                                            value={settings.temperature}
+                                            onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
+                                            className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-gray-950/50 border-t border-gray-800">
+                                <button
+                                    onClick={() => setShowSettings(false)}
+                                    className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-semibold transition-colors"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Content */}
                 <main className="container mx-auto px-4 py-12">
@@ -257,6 +406,16 @@ export default function LaunchPanel() {
                             >
                                 🎨 Templates
                             </button>
+                            <button
+                                onClick={() => setActiveTab('recent')}
+                                className={`px-4 py-3 font-semibold transition-colors ${
+                                    activeTab === 'recent'
+                                        ? 'text-blue-400 border-b-2 border-blue-400'
+                                        : 'text-gray-400 hover:text-gray-300'
+                                }`}
+                            >
+                                🕒 Recent
+                            </button>
                         </div>
                     </div>
 
@@ -270,10 +429,10 @@ export default function LaunchPanel() {
                                     <p className="text-sm text-gray-400">Start from pre-built templates</p>
                                 </div>
                                 
-                                <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 opacity-50 cursor-not-allowed">
-                                    <Clock className="h-8 w-8 text-gray-500 mb-3" />
-                                    <h3 className="text-lg font-semibold text-gray-400 mb-2">Recent Projects</h3>
-                                    <p className="text-sm text-gray-500">Coming soon...</p>
+                                <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('recent')}>
+                                    <Clock className="h-8 w-8 text-blue-400 mb-3" />
+                                    <h3 className="text-lg font-semibold text-white mb-2">Recent Projects</h3>
+                                    <p className="text-sm text-gray-400">View your previous work</p>
                                 </div>
                                 
                                 <div className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 opacity-50 cursor-not-allowed">
@@ -281,6 +440,44 @@ export default function LaunchPanel() {
                                     <h3 className="text-lg font-semibold text-gray-400 mb-2">Customize Settings</h3>
                                     <p className="text-sm text-gray-500">Coming soon...</p>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'recent' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {recentWorkspaces.length > 0 ? (
+                                    recentWorkspaces.map((ws) => (
+                                        <div
+                                            key={ws._id}
+                                            onClick={() => handleRecentClick(ws._id)}
+                                            className="group bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 hover:shadow-xl transition-all cursor-pointer"
+                                        >
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="p-2 bg-blue-500/10 rounded-lg">
+                                                    <Code2 className="h-6 w-6 text-blue-400" />
+                                                </div>
+                                                <span className="text-[10px] text-gray-500 font-mono">
+                                                    {new Date(ws._creationTime).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors truncate">
+                                                {ws.name || 'Untitled Project'}
+                                            </h3>
+                                            <p className="text-sm text-gray-400 mb-4 line-clamp-2 italic">
+                                                "{ws.messages?.[0]?.content.slice(0, 100)}..."
+                                            </p>
+                                            <div className="flex items-center text-blue-400 text-sm font-medium">
+                                                Continue Editing <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-12 text-center bg-gray-900/30 border border-dashed border-gray-800 rounded-2xl">
+                                        <Clock className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-400">No recent projects</h3>
+                                        <p className="text-gray-500">Start a new project to see it here!</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 

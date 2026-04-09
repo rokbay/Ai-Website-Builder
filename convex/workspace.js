@@ -4,10 +4,12 @@ import { mutation, query } from './_generated/server';
 export const CreateWorkspace = mutation({
     args:{
         messages:v.any(),
+        name:v.optional(v.string()),
     },
     handler:async(ctx,args)=>{
         const workspaceId = await ctx.db.insert('workspace',{
-            messages:args.messages
+            messages:args.messages,
+            name:args.name
         });
         return workspaceId;
     }
@@ -27,10 +29,12 @@ export const UpdateWorkspace = mutation({
     args:{
         workspaceId:v.id('workspace'),
         messages:v.any(),
+        name:v.optional(v.string()),
     },
     handler:async(ctx,args)=>{
         const result=await ctx.db.patch(args.workspaceId,{
-            messages:args.messages
+            messages:args.messages,
+            name:args.name
         });
         return result;
     }

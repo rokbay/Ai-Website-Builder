@@ -11,5 +11,6 @@ export default defineSchema({
     workspace:defineTable({
         messages:v.any(),
         fileData:v.optional(v.any()),
+        name:v.optional(v.string()),
     })
 });

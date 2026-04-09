@@ -77,7 +77,7 @@
 
 | <img src="https://github.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/assets/74038190/3fb3c0e0-6593-4bb0-8063-83c5a3701b00" width="60"><br>**AI-Powered Magic** | <img src="https://github.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/assets/74038190/dc383bd4-0752-4812-b83f-2e5f91e85c49" width="60"><br>**Modern Development** | <img src="https://github.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/assets/74038190/cc4db401-7578-4c7a-b045-210e59249819" width="60"><br>**Developer Experience** |
 |:---:|:---:|:---:|
-| 🧠 Smart Content Generation <br> 🎯 Natural Language to Code <br> 💡 Intelligent Suggestions <br> 🔮 Component Synthesis | ⚡ Lightning Fast <br> 🎨 Beautiful by Default <br> 🔄 Real-time Updates <br> 📱 Fully Responsive | 🛠️ Export Ready <br> 🌗 Theme Switcher <br> 🔧 Customizable <br> 📊 SEO Optimized |
+| 🧠 Smart Content Generation <br> 🎯 Natural Language to Code <br> 💡 Intelligent Suggestions <br> 🔮 Component Synthesis | ⚡ Lightning Fast <br> 🎨 Beautiful by Default <br> 🔄 Real-time Updates <br> 📱 Fully Responsive | 🛠️ Export Ready <br> 🌗 Theme Switcher <br> 🕒 Recent Projects <br> 🔧 Customizable AI |
 
 </div>
 
