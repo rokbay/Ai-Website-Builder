@@ -53,13 +53,21 @@ function CodeView({ initialFileData }) {
         setLoading(true);
         const PROMPT = JSON.stringify(messages) + " " + Prompt.CODE_GEN_PROMPT;
         
+        const savedSettings = JSON.parse(localStorage.getItem('app_settings') || '{}');
+
         try {
             const response = await fetch('/api/gen-ai-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ prompt: PROMPT }),
+                body: JSON.stringify({
+                    prompt: PROMPT,
+                    config: {
+                        temperature: savedSettings.temperature,
+                        model: savedSettings.aiModel
+                    }
+                }),
             });
 
             const reader = response.body.getReader();
@@ -173,55 +181,59 @@ function CodeView({ initialFileData }) {
     }, [files]);
 
     return (
-        <div className='relative'>
-            <div className='bg-[#181818] w-full p-2 border'>
-                <div className='flex items-center justify-between'>
-                    <div className='flex items-center flex-wrap shrink-0 bg-black p-1 justify-center
-                    w-[140px] gap-3 rounded-full'>
-                        <h2 onClick={() => setActiveTab('code')}
-                            className={`text-sm cursor-pointer 
-                        ${activeTab == 'code' && 'text-blue-500 bg-blue-500 bg-opacity-25 p-1 px-2 rounded-full'}`}>
-                            Code</h2>
-
-                        <h2 onClick={() => setActiveTab('preview')}
-                            className={`text-sm cursor-pointer 
-                        ${activeTab == 'preview' && 'text-blue-500 bg-blue-500 bg-opacity-25 p-1 px-2 rounded-full'}`}>
-                            Preview</h2>
-                    </div>
-                    
-                    {/* Download Button */}
-                    <button
-                        onClick={downloadFiles}
-                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full transition-colors duration-200"
-                    >
-                        <Download className="h-4 w-4" />
-                        <span>Download Files</span>
-                    </button>
+        <div className='relative h-full flex flex-col'>
+            <div className='bg-gray-950/80 backdrop-blur-md w-full px-6 py-3 border-b border-gray-800 flex items-center justify-between'>
+                <div className='flex items-center gap-1 bg-gray-900/50 p-1 rounded-xl border border-gray-800'>
+                    {[
+                        { id: 'code', label: 'Code', icon: null },
+                        { id: 'preview', label: 'Live Preview', icon: null }
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider ${
+                                activeTab === tab.id
+                                    ? 'bg-blue-600 text-white shadow-lg'
+                                    : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
+
+                <button
+                    onClick={downloadFiles}
+                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-gray-700 uppercase tracking-widest"
+                >
+                    <Download className="h-3.5 w-3.5" />
+                    Export Project
+                </button>
             </div>
-            <SandpackProvider 
-            files={files}
-            template="react" 
-            theme={'dark'}
-            customSetup={{
-                dependencies: {
-                    ...Lookup.DEPENDANCY
-                },
-                entry: '/index.js'
-            }}
-            options={{
-                externalResources: ['https://cdn.tailwindcss.com'],
-                bundlerTimeoutSecs: 120,
-                recompileMode: "immediate",
-                recompileDelay: 300
-            }}
-            >
-                <div className="relative">
-                    <SandpackLayout>
+
+            <div className="flex-1 min-h-0">
+                <SandpackProvider
+                files={files}
+                template="react"
+                theme={'dark'}
+                customSetup={{
+                    dependencies: {
+                        ...Lookup.DEPENDANCY
+                    },
+                    entry: '/index.js'
+                }}
+                options={{
+                    externalResources: ['https://cdn.tailwindcss.com'],
+                    bundlerTimeoutSecs: 120,
+                    recompileMode: "immediate",
+                    recompileDelay: 300
+                }}
+                >
+                    <SandpackLayout style={{ height: '100%', border: 'none', borderRadius: 0 }}>
                         {activeTab=='code'?<>
-                            <SandpackFileExplorer style={{ height: '80vh' }} />
+                            <SandpackFileExplorer style={{ height: '100%' }} />
                             <SandpackCodeEditor 
-                            style={{ height: '80vh' }}
+                            style={{ height: '100%' }}
                             showTabs
                             showLineNumbers
                             showInlineErrors
@@ -229,15 +241,15 @@ function CodeView({ initialFileData }) {
                         </>:
                         <>
                             <SandpackPreview 
-                                style={{ height: '80vh' }} 
+                                style={{ height: '100%' }}
                                 showNavigator={true}
                                 showOpenInCodeSandbox={false}
                                 showRefreshButton={true}
                             />
                         </>}
                     </SandpackLayout>
-                </div>
-            </SandpackProvider>
+                </SandpackProvider>
+            </div>
 
             {loading&&<div className='p-10 bg-gray-900 opacity-80 absolute top-0 
             rounded-lg w-full h-full flex items-center justify-center'>

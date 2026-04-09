@@ -49,12 +49,14 @@ const Workspace = () => {
     }, [id, convex, setMessages]);
 
     return (
-        <div className="min-h-screen bg-gray-950 relative overflow-hidden">
+        <div className="h-screen bg-gray-950 relative overflow-hidden flex flex-col">
             <BackgroundPattern />
-            <div className='relative z-10 p-10'>
-                <div className='grid grid-cols-1 md:grid-cols-4 gap-10'>
-                    <ChatView />
-                    <div className='col-span-3'>
+            <div className='relative z-10 flex-1 overflow-hidden'>
+                <div className='grid grid-cols-1 md:grid-cols-12 h-full'>
+                    <div className="md:col-span-3 h-full border-r border-gray-800 bg-gray-900/30 backdrop-blur-sm">
+                        <ChatView />
+                    </div>
+                    <div className='md:col-span-9 h-full overflow-hidden bg-black/20'>
                         <CodeView initialFileData={initialFileData} />
                     </div>
                 </div>

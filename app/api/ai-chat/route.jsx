@@ -1,10 +1,24 @@
-import { chatSession } from "@/configs/AiModel";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req) {
-    const {prompt} = await req.json();
+    const {prompt, config} = await req.json();
 
     try {
-        const result = await chatSession.sendMessageStream(prompt);
+        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const modelName = config?.model || "gemini-flash-lite-latest";
+        const model = genAI.getGenerativeModel({ model: modelName });
+
+        const generationConfig = {
+            temperature: config?.temperature ?? 1,
+            topP: 0.95,
+            topK: 40,
+            maxOutputTokens: 8192,
+            responseMimeType: "text/plain",
+        };
+
+        const chat = model.startChat({ generationConfig });
+        const result = await chat.sendMessageStream(prompt);
         
         const encoder = new TextEncoder();
         const stream = new ReadableStream({

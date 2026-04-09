@@ -9,9 +9,46 @@
         Width="1400"
         Height="900"
         WindowStartupLocation="CenterScreen"
-        Background="#0F172A"
-        Foreground="#E2E8F0"
+        Background="#020617"
+        Foreground="#F8FAFC"
         WindowState="Maximized">
+    <Window.Resources>
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B" />
+            <Setter Property="Foreground" Value="#F8FAFC" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#334155" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#334155" />
+                                <Setter Property="BorderBrush" Value="#475569" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#0F172A" />
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -19,8 +56,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,0,0,1" Padding="20">
+        <!-- Modern Fluent Header -->
+        <Border Grid.Row="0" Background="#020617" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="24,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -28,71 +65,79 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Background="#3B82F6" CornerRadius="8" Padding="8" Margin="0,0,12,0">
-                        <TextBlock Text="⚡" FontSize="20" />
-                    </Border>
+                    <Grid Margin="0,0,16,0">
+                        <Border Width="40" Height="40" Background="#3B82F6" CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="15" Color="#3B82F6" Opacity="0.3" ShadowDepth="0" />
+                            </Border.Effect>
+                        </Border>
+                        <TextBlock Text="⚡" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" />
+                    </Grid>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="AI Website Builder" FontSize="20" FontWeight="Bold" Foreground="#E2E8F0" />
-                        <TextBlock Text="Powered by .NET CLR" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0" />
+                        <TextBlock Text="AI WEBSITE BUILDER" FontSize="14" FontWeight="Black" Foreground="#F8FAFC" LetterSpacing="2" />
+                        <TextBlock Text="v1.0 • .NET HYBRID CORE" FontSize="10" Foreground="#64748B" FontWeight="Bold" Margin="0,2,0,0" />
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="RefreshButton" Click="RefreshButton_Click" Margin="0,0,12,0"
-                            Background="Transparent" Foreground="#E2E8F0" Padding="12,8"
-                            BorderBrush="#475569" BorderThickness="1"
-                            Cursor="Hand">
-                        🔄 Refresh
-                    </Button>
+                    <Button Name="RefreshButton" Click="RefreshButton_Click" Margin="0,0,8,0"
+                            Style="{StaticResource ModernButton}" Content="RELOAD" />
                     <Button Name="DevToolsButton" Click="DevToolsButton_Click" 
-                            Background="Transparent" Foreground="#E2E8F0" Padding="12,8"
-                            BorderBrush="#475569" BorderThickness="1"
-                            Cursor="Hand">
-                        🛠️ Dev Tools
-                    </Button>
+                            Style="{StaticResource ModernButton}" Content="INSPECT" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- WebView2 Container -->
-        <Border Grid.Row="1" Background="#0F172A">
+        <Border Grid.Row="1" Background="#020617">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                <wv2:WebView2 x:Name="WebView" />
+            </Grid>
+        </Border>
 
-                <!-- WebView2 Control -->
-                <wv2:WebView2 x:Name="WebView" Grid.Row="0" />
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                <!-- Status Bar -->
-                <Border Grid.Row="1" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,1,0,0" Padding="12">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Ellipse Width="8" Height="8" Fill="#22C55E" Margin="0,0,8,0" VerticalAlignment="Center">
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="8" Color="#22C55E" Opacity="0.5" ShadowDepth="0" />
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    <TextBlock Name="StatusText" Text="CONNECTED TO NEXT.JS"
+                               Foreground="#94A3B8" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" />
+                </StackPanel>
 
-                        <TextBlock Grid.Column="0" Name="StatusText" Text="Initializing..." 
-                                   Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Name="AppVersionText" Text=".NET CLR • Window Runtime" 
-                                   Foreground="#64748B" FontSize="11" VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
+                <TextBlock Grid.Column="1" Name="AppVersionText" Text="CLR RUNTIME ACTIVE"
+                           Foreground="#475569" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" />
             </Grid>
         </Border>
 
         <!-- Loading Overlay -->
-        <Canvas Grid.Row="0" Grid.RowSpan="3" Name="LoadingOverlay" Background="#0F172A" Opacity="0.95" 
-                Visibility="Visible" Panel.ZIndex="1000">
-            <StackPanel Canvas.Left="0" Canvas.Top="0" Canvas.Right="0" Canvas.Bottom="0" 
-                        VerticalAlignment="Center" HorizontalAlignment="Center" Width="300">
-                <TextBlock Text="🚀 Launching AI Website Builder" TextAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Foreground="#E2E8F0" Margin="0,0,0,16" />
-                <ProgressBar Height="4" Foreground="#3B82F6" IsIndeterminate="True" />
-                <TextBlock Name="LoadingText" Text="Starting Next.js environment..." TextAlignment="Center" 
-                           FontSize="12" Foreground="#94A3B8" Margin="0,16,0,0" />
+        <Grid Grid.RowSpan="3" Name="LoadingOverlay" Background="#020617" Visibility="Visible" Panel.ZIndex="1000">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Grid Width="60" Height="60" Margin="0,0,0,24">
+                    <Ellipse Stroke="#1E293B" StrokeThickness="4" />
+                    <Ellipse Stroke="#3B82F6" StrokeThickness="4" StrokeDashArray="1,2" Name="SpinnerCircle">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform CenterX="30" CenterY="30" />
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                </Grid>
+
+                <TextBlock Text="AI WEBSITE BUILDER" TextAlignment="Center"
+                           FontSize="14" FontWeight="Black" Foreground="#F8FAFC" LetterSpacing="4" Margin="0,0,0,8" />
+                <TextBlock Name="LoadingText" Text="INITIALIZING HYBRID ENVIRONMENT..." TextAlignment="Center"
+                           FontSize="10" Foreground="#64748B" FontWeight="Bold" />
+
+                <ProgressBar Margin="0,32,0,0" Width="200" Height="2" Background="#1E293B" Foreground="#3B82F6"
+                             IsIndeterminate="True" BorderThickness="0" />
             </StackPanel>
-        </Canvas>
+        </Grid>
     </Grid>
 </Window>

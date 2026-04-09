@@ -11,21 +11,29 @@ import ReactMarkdown from 'react-markdown';
 
 const MessageItem = memo(({ msg, index }) => (
     <div
-        className={`p-4 rounded-lg ${
+        className={`group relative flex gap-3 p-4 transition-colors ${
             msg.role === 'user' 
-                ? 'bg-gray-800/50 border border-gray-700' 
-                : 'bg-gray-800/30 border border-gray-700'
+                ? 'bg-blue-500/5 border-l-2 border-l-blue-500'
+                : 'bg-purple-500/5 border-l-2 border-l-purple-500'
         }`}
     >
-        <div className="flex items-start gap-3">
-            <div className={`p-2 rounded-lg ${
-                msg.role === 'user' 
-                    ? 'bg-blue-500/20 text-blue-400' 
-                    : 'bg-purple-500/20 text-purple-400'
-            }`}>
-                {msg.role === 'user' ? 'You' : 'AI'}
+        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+            msg.role === 'user'
+                ? 'bg-blue-600 text-white'
+                : 'bg-purple-600 text-white'
+        }`}>
+            {msg.role === 'user' ? 'U' : 'AI'}
+        </div>
+        <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+                <span className={`text-xs font-semibold uppercase tracking-wider ${
+                    msg.role === 'user' ? 'text-blue-400' : 'text-purple-400'
+                }`}>
+                    {msg.role === 'user' ? 'You' : 'Assistant'}
+                </span>
             </div>
-            <ReactMarkdown className="prose prose-invert flex-1 overflow-auto">
+            <ReactMarkdown className="text-sm text-gray-200 leading-relaxed prose prose-invert prose-sm max-w-none break-words
+                prose-p:mt-0 prose-p:mb-2 prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-code:text-blue-300">
                 {msg.content}
             </ReactMarkdown>
         </div>
@@ -50,6 +58,8 @@ function ChatView() {
         setStreamingContent('');
         const PROMPT = JSON.stringify(messages) + Prompt.CHAT_PROMPT;
         
+        const savedSettings = JSON.parse(localStorage.getItem('app_settings') || '{}');
+
         try {
             const response = await fetch('/api/ai-chat', {
                 method: 'POST',
@@ -57,7 +67,13 @@ function ChatView() {
                     'Content-Type': 'application/json',
                 },
                 signal: controller.signal,
-                body: JSON.stringify({ prompt: PROMPT }),
+                body: JSON.stringify({
+                    prompt: PROMPT,
+                    config: {
+                        temperature: savedSettings.temperature,
+                        model: savedSettings.aiModel
+                    }
+                }),
             });
 
             const reader = response.body.getReader();
@@ -138,10 +154,20 @@ function ChatView() {
     }, [setMessages]);
 
     return (
-        <div className="relative h-[85vh] flex flex-col bg-gray-900">
+        <div className="relative h-full flex flex-col bg-gray-950">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                        <Send className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <span className="font-bold text-white tracking-tight">AI Assistant</span>
+                </div>
+            </div>
+
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide p-4">
-                <div className="max-w-4xl mx-auto space-y-4">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+                <div className="divide-y divide-gray-800/50">
                     {Array.isArray(messages) && messages?.map((msg, index) => (
                         <MessageItem key={index} msg={msg} index={index} />
                     ))}
@@ -152,20 +178,22 @@ function ChatView() {
                     )}
 
                     {loading && (
-                        <div className="p-4 rounded-lg bg-gray-800/30 border border-gray-700">
+                        <div className="p-6 bg-gray-900/20 border-t border-gray-800">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 text-gray-400">
-                                    <Loader2Icon className="animate-spin h-5 w-5" />
-                                    <p className="font-medium">
-                                        {!streamingContent ? 'Generating response...' : 'AI is typing...'}
+                                <div className="flex items-center gap-3 text-gray-500">
+                                    <div className="relative">
+                                        <div className="h-5 w-5 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
+                                    </div>
+                                    <p className="text-xs font-medium uppercase tracking-widest">
+                                        {!streamingContent ? 'Thinking...' : 'Typing...'}
                                     </p>
                                 </div>
                                 {abortController && (
                                     <button
                                         onClick={stopGeneration}
-                                        className="text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-full transition-all"
+                                        className="text-[10px] uppercase font-bold tracking-tighter bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1 rounded transition-all border border-red-500/20"
                                     >
-                                        Stop Generation
+                                        Abort
                                     </button>
                                 )}
                             </div>
@@ -175,30 +203,29 @@ function ChatView() {
             </div>
 
             {/* Input Section */}
-            <div className="border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm p-4">
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
-                        <div className="flex gap-3">
-                            <textarea
-                                placeholder="Type your message here..."
-                                value={userInput}
-                                onChange={(event) => setUserInput(event.target.value)}
-                                className="w-full bg-gray-900/50 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 resize-none h-32"
-                            />
-                            {userInput && (
-                                <button
-                                    onClick={() => onGenerate(userInput)}
-                                    className="flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl px-4 transition-all duration-200"
-                                >
-                                    <Send className="h-6 w-6 text-white" />
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex justify-end mt-3">
-                            <Link className="h-5 w-5 text-gray-400 hover:text-gray-300 transition-colors duration-200" />
-                        </div>
-                    </div>
+            <div className="p-4 bg-gray-900/80 backdrop-blur-md border-t border-gray-800">
+                <div className="relative group">
+                    <textarea
+                        placeholder="Ask me to modify the code..."
+                        value={userInput}
+                        onChange={(event) => setUserInput(event.target.value)}
+                        className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 pr-12 text-sm text-white placeholder-gray-500 focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all duration-300 resize-none h-24 shadow-inner"
+                    />
+                    <button
+                        onClick={() => onGenerate(userInput)}
+                        disabled={!userInput.trim() || loading}
+                        className={`absolute right-3 bottom-3 p-2 rounded-lg transition-all duration-300 ${
+                            userInput.trim() && !loading
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-100'
+                                : 'bg-gray-800 text-gray-600 scale-90 opacity-50 cursor-not-allowed'
+                        }`}
+                    >
+                        <Send className="h-4 w-4" />
+                    </button>
                 </div>
+                <p className="text-[10px] text-gray-500 mt-2 text-center uppercase tracking-widest opacity-50">
+                    Enter to send • Shift + Enter for new line
+                </p>
             </div>
         </div>
     );
