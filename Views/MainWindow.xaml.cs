@@ -124,7 +124,16 @@ namespace AiWebsiteBuilder.Views
                 DevToolsButton.IsEnabled = true;
 
                 UpdateStatus("Launching Next.js server...");
-                await StartNextJsServer();
+                try
+                {
+                    await StartNextJsServer();
+                }
+                catch (Exception ex)
+                {
+                    UpdateStatus($"SERVER STARTUP FAILED: {ex.Message}");
+                    MessageBox.Show($"Next.js server could not be started:\n{ex.Message}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
                 UpdateStatus("Waiting for server to be ready...");
                 await WaitForServerReady();
@@ -405,10 +414,14 @@ namespace AiWebsiteBuilder.Views
                     Arguments = $"/c {command}",
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
                 };
                 using var proc = Process.Start(psi);
-                return proc?.WaitForExit(2000) ?? false;
+                if (proc == null) return false;
+
+                bool exited = proc.WaitForExit(3000);
+                return exited && proc.ExitCode == 0;
             }
             catch { return false; }
         }

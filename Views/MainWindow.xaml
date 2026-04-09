@@ -121,7 +121,7 @@
         </Border>
 
         <!-- Loading Overlay -->
-        <Grid Grid.RowSpan="3" Name="LoadingOverlay" Background="#020617" Visibility="Visible" Panel.ZIndex="1000">
+        <Grid Grid.Row="0" Grid.RowSpan="3" Name="LoadingOverlay" Background="#020617" Visibility="Visible" Panel.ZIndex="1000">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Grid Width="60" Height="60" Margin="0,0,0,24">
                     <Ellipse Stroke="#1E293B" StrokeThickness="4" />
