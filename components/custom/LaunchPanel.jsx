@@ -205,32 +205,18 @@ export default function LaunchPanel() {
             <div className="absolute -right-20 bottom-1/4 h-[400px] w-[400px] bg-blue-600/10 rounded-full blur-[120px]" />
 
             <div className="relative z-10 flex flex-col min-h-screen">
-                {/* Modern Glass Header */}
-                <header className="border-b border-white/5 bg-gray-950/40 backdrop-blur-2xl sticky top-0 z-50">
-                    <div className="container mx-auto px-6 py-5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 group cursor-pointer" onClick={() => router.push('/')}>
-                                <div className="p-2.5 bg-gradient-to-tr from-blue-600 via-blue-500 to-purple-600 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:scale-105 transition-transform duration-300">
-                                    <Code2 className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl font-black text-white tracking-tighter uppercase">AI Website Builder</h1>
-                                    <div className="flex items-center gap-2">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Online</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowSettings(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all duration-300 font-bold text-xs uppercase tracking-widest active:scale-95"
-                            >
-                                <Settings className="h-4 w-4 text-blue-400" />
-                                Settings
-                            </button>
-                        </div>
-                    </div>
-                </header>
+                {/* Redundant header removed - using global header from provider */}
+
+                {/* Floating Settings Button (Since header is global) */}
+                <div className="fixed top-5 right-6 z-[110]">
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest active:scale-95 shadow-2xl"
+                    >
+                        <Settings className="h-4 w-4 text-blue-400" />
+                        Settings
+                    </button>
+                </div>
 
                 {/* Settings Modal */}
                 {showSettings && (
@@ -368,7 +354,7 @@ export default function LaunchPanel() {
                                         onChange={(e) => setUserInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="e.g., Construct a high-performance e-commerce engine with biometric auth and real-time inventory..."
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-6 py-5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 resize-none font-mono text-lg min-h-[160px] transition-all shadow-inner"
+                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-6 py-5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 resize-none font-mono text-lg min-h-[160px] transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
                                     />
 
                                     <div className="flex gap-4">
