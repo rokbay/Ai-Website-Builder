@@ -144,6 +144,63 @@ namespace AiWebsiteBuilder.Views
                     return new { status = "started" };
                 });
 
+                _webMessageBridge.OnRequest<dynamic>("saveGeminiApiKey", async (data) =>
+                {
+                    string apiKey = data?.apiKey?.ToString() ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(apiKey))
+                    {
+                        return new { status = "error", message = "API key cannot be empty." };
+                    }
+
+                    try
+                    {
+                        var projectRoot = LocateProjectRoot();
+                        string envPath = Path.Combine(projectRoot, ".env.local");
+
+                        StringBuilder sb = new StringBuilder();
+                        bool found = false;
+
+                        if (File.Exists(envPath))
+                        {
+                            var lines = File.ReadAllLines(envPath);
+                            foreach (var line in lines)
+                            {
+                                if (line.TrimStart().StartsWith("NEXT_PUBLIC_GEMINI_API_KEY="))
+                                {
+                                    sb.AppendLine($"NEXT_PUBLIC_GEMINI_API_KEY={apiKey}");
+                                    found = true;
+                                }
+                                else if (line.TrimStart().StartsWith("GEMINI_API_KEY="))
+                                {
+                                    sb.AppendLine($"GEMINI_API_KEY={apiKey}");
+                                    found = true;
+                                }
+                                else
+                                {
+                                    sb.AppendLine(line);
+                                }
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            sb.AppendLine($"NEXT_PUBLIC_GEMINI_API_KEY={apiKey}");
+                            sb.AppendLine($"GEMINI_API_KEY={apiKey}");
+                        }
+
+                        File.WriteAllText(envPath, sb.ToString());
+
+                        // Re-initialize Gemini service with new key
+                        _geminiService.Initialize(apiKey);
+
+                        return new { status = "success", message = "API key saved to .env.local" };
+                    }
+                    catch (Exception ex)
+                    {
+                        return new { status = "error", message = $"Failed to save API key: {ex.Message}" };
+                    }
+                });
+
                 // Enable UI controls during initialization
                 RefreshButton.IsEnabled = true;
                 DevToolsButton.IsEnabled = true;
@@ -381,24 +438,45 @@ namespace AiWebsiteBuilder.Views
                     }
                 }
 
-                UpdateStatus("Starting Next.js development server...");
-
                 // Find project root from current executable location
                 var projectRoot = LocateProjectRoot();
 
-                // Resolve npm path robustly
-                string npmCommand = ResolveNpmPath();
+                // Check for production build
+                string nextDir = Path.Combine(projectRoot, ".next");
+                string outDir = Path.Combine(projectRoot, "out");
+                bool hasProductionBuild = Directory.Exists(nextDir) || Directory.Exists(outDir);
 
-                var startInfo = new ProcessStartInfo
+                string npmCommand = ResolveNpmPath();
+                ProcessStartInfo startInfo;
+
+                if (hasProductionBuild)
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c \"{npmCommand}\" run dev",
-                    WorkingDirectory = projectRoot,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    UpdateStatus("Starting Next.js production server...");
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c \"{npmCommand}\" start",
+                        WorkingDirectory = projectRoot,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
+                else
+                {
+                    UpdateStatus("Starting Next.js development server...");
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c \"{npmCommand}\" run dev",
+                        WorkingDirectory = projectRoot,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                }
 
                 // Load and inject .env.local variables
                 LoadEnvFile(projectRoot, startInfo);
