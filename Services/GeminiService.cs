@@ -14,12 +14,17 @@ namespace AiWebsiteBuilder.Services
     public class GeminiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string? _apiKey;
+        private string? _apiKey;
 
         public GeminiService()
         {
             _httpClient = new HttpClient();
             _apiKey = ResolveApiKey();
+        }
+
+        public void Initialize(string apiKey)
+        {
+            _apiKey = apiKey;
         }
 
         public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
