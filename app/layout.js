@@ -3,6 +3,7 @@ import "./globals.css";
 import Provider from "./provider";
 import ConvexClientProvider from "./ConvexClientProvider";
 import { NotificationDisplay } from "@/components/custom/NotificationComponents";
+import SettingsModal from "@/components/custom/SettingsModal";
 import ClientInitializer from "./ClientInitializer";
 
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
           <ClientInitializer>
             {children}
             <NotificationDisplay />
+            <SettingsModal />
           </ClientInitializer>
         </Provider>
         </ConvexClientProvider>

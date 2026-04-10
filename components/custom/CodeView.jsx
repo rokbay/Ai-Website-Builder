@@ -55,14 +55,33 @@ function CodeView({ initialFileData }) {
     }, [STREAMING_FILE]);
 
     useEffect(() => {
+        // --- BATCH STREAMING OPTIMIZATION ---
+        // Accumulate chunks and update UI at fixed intervals to reduce React re-renders
+        let buffer = '';
+        const BATCH_INTERVAL_MS = 80;
+
+        const flushBuffer = () => {
+            if (buffer.length > 0) {
+                const chunkToApply = buffer;
+                buffer = '';
+                setStreamingContent((prev) => prev + chunkToApply);
+                applyStreamingChunkToFiles(chunkToApply);
+            }
+        };
+
+        const intervalId = setInterval(flushBuffer, BATCH_INTERVAL_MS);
+
         const unsubChunk = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (data) => {
             if (data?.chunk) {
-                setStreamingContent((prev) => prev + data.chunk);
-                applyStreamingChunkToFiles(data.chunk);
+                buffer += data.chunk;
             }
         });
 
         const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, (data) => {
+            // Ensure remaining buffer is flushed
+            clearInterval(intervalId);
+            flushBuffer();
+
             if (data?.final) {
                 setStreamingContent(data.final);
                 setFiles((prev) => ({
@@ -81,11 +100,12 @@ function CodeView({ initialFileData }) {
         });
 
         return () => {
+            clearInterval(intervalId);
             unsubChunk();
             unsubComplete();
             unsubError();
         };
-    }, []);
+    }, [applyStreamingChunkToFiles]);
 
     useEffect(() => {
         if (initialFileData) {
@@ -249,20 +269,20 @@ function CodeView({ initialFileData }) {
     }, [files]);
 
     return (
-        <div className='relative h-full flex flex-col bg-black/20'>
-            <div className='bg-gray-950/40 backdrop-blur-2xl w-full px-8 py-5 border-b border-white/5 flex items-center justify-between'>
-                <div className='flex items-center gap-2 bg-black/40 p-1 rounded-2xl border border-white/5 shadow-inner'>
+        <div className='relative h-full flex flex-col bg-slate-950/20'>
+            <div className='bg-slate-950/40 backdrop-blur-3xl w-full px-8 py-4 border-b border-white/5 flex items-center justify-between'>
+                <div className='flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5'>
                     {[
-                        { id: 'code', label: 'Source', icon: Code2 },
+                        { id: 'code', label: 'Architecture', icon: Code2 },
                         { id: 'preview', label: 'Deployment', icon: Zap }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-[0.2em] ${
+                            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-[10px] font-black transition-all uppercase tracking-[0.2em] ${
                                 activeTab === tab.id
-                                    ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]'
-                                    : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
                         >
                             <tab.icon className="h-3.5 w-3.5" />
@@ -271,13 +291,15 @@ function CodeView({ initialFileData }) {
                     ))}
                 </div>
 
-                <button
-                    onClick={downloadFiles}
-                    className="flex items-center gap-3 bg-white/5 hover:bg-white/10 text-white px-6 py-2.5 rounded-xl text-[10px] font-black transition-all border border-white/10 uppercase tracking-[0.2em] shadow-2xl active:scale-95"
-                >
-                    <Download className="h-4 w-4 text-blue-400" />
-                    Synchronize Local
-                </button>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={downloadFiles}
+                        className="flex items-center gap-3 glass-button-primary py-2 px-5 text-[10px] uppercase tracking-[0.2em]"
+                    >
+                        <Download className="h-3.5 w-3.5" />
+                        Push to Production
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 min-h-0">
@@ -321,17 +343,31 @@ function CodeView({ initialFileData }) {
             </div>
 
             {loading && (
-                <div className='p-6 bg-black/85 absolute inset-0 rounded-lg w-full h-full flex flex-col items-center justify-center text-left z-20'>
-                    <div className='w-full max-w-4xl space-y-4'>
-                        <div className='flex items-center gap-3'>
-                            <Loader2Icon className='animate-spin h-10 w-10 text-white' />
-                            <div>
-                                <h2 className='text-lg font-bold text-white'>Generating files...</h2>
-                                <p className='text-sm text-slate-300'>Streaming AI code from local .NET bridge.</p>
+                <div className='absolute inset-0 z-[200] bg-slate-950/60 backdrop-blur-md flex flex-col items-center justify-center p-8'>
+                    <div className='w-full max-w-5xl holographic-card p-1 animate-in zoom-in-95 duration-500'>
+                        <div className="bg-slate-950/90 rounded-[14px] overflow-hidden">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-slate-900/40">
+                                <div className="flex items-center gap-4">
+                                    <Loader2Icon className='animate-spin h-5 w-5 text-blue-400' />
+                                    <div className="flex flex-col">
+                                        <h2 className='text-[10px] font-black text-white uppercase tracking-[0.2em]'>Neural Synthesis Active</h2>
+                                        <span className='text-[9px] font-bold text-slate-500 uppercase tracking-widest'>Local .NET Bridge • Gemini Flash 2.0</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                    <span className="text-[9px] font-mono text-blue-500/70 uppercase">Streaming...</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className='rounded-2xl border border-blue-500/30 bg-slate-950/95 p-4 min-h-[240px] overflow-auto'>
-                            <pre className='whitespace-pre-wrap break-words text-xs leading-5 text-slate-100'>{streamingContent || 'Waiting for stream...'}</pre>
+                            <div className='p-6 max-h-[500px] overflow-y-auto custom-scrollbar font-mono'>
+                                <pre className='whitespace-pre-wrap break-words text-[11px] leading-relaxed text-slate-300 selection:bg-blue-500/30'>
+                                    {streamingContent || '// Waiting for neural link...'}
+                                </pre>
+                            </div>
+                            <div className="px-6 py-3 border-t border-white/5 bg-slate-900/20 flex justify-between items-center">
+                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Pipeline: WPF_BRIDGE_STABLE</span>
+                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Blocks: {streamingContent.length.toLocaleString()}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
