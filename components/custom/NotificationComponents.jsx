@@ -22,16 +22,27 @@ export const NotificationDisplay = () => {
         // Subscribe to all events for notification queue
         const unsubAll = notificationSystem.subscribe('*', (event) => {
             setNotifications((prev) => {
-                const updated = [
-                    ...prev,
-                    {
-                        id: `${event.type}-${event.timestamp}`,
-                        type: event.type,
-                        message: event.data?.message || event.type,
-                        severity: event.data?.severity || 'info',
-                        timestamp: event.timestamp,
-                    },
-                ];
+                const newNotification = {
+                    id: `${event.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    type: event.type,
+                    message: event.data?.message || event.type,
+                    severity: event.data?.severity || 'info',
+                    timestamp: event.timestamp,
+                };
+                
+                // Prevent duplicate notifications with same type and message in last 2 seconds
+                const twoSecondsAgo = Date.now() - 2000;
+                const isDuplicate = prev.some(notif => 
+                    notif.type === newNotification.type && 
+                    notif.message === newNotification.message &&
+                    new Date(notif.timestamp).getTime() > twoSecondsAgo
+                );
+                
+                if (isDuplicate) {
+                    return prev; // Don't add duplicate
+                }
+                
+                const updated = [...prev, newNotification];
                 // Keep only last 10 notifications
                 return updated.slice(-10);
             });

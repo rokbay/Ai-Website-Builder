@@ -1,6 +1,6 @@
 "use client"
 import { MessagesContext } from '@/context/MessagesContext';
-import { Link, Loader2Icon, Send } from 'lucide-react';
+import { Link, Loader2Icon, Send, Cpu } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { useParams } from 'next/navigation';
 import { useContext, useEffect, useState, useCallback, memo } from 'react';

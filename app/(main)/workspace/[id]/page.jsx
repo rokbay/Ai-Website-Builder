@@ -31,16 +31,35 @@ const Workspace = () => {
     const { setMessages } = useContext(MessagesContext);
     const [initialFileData, setInitialFileData] = useState(null);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
 
+    // Single fetch: get metadata and files separately (optimized with new queries)
     useEffect(() => {
         const GetWorkspaceData = async () => {
             if (id) {
-                const result = await convex.query(api.workspace.GetWorkspace, {
-                    workspaceId: id
-                });
-                if (result) {
-                    setMessages(result.messages || []);
-                    setInitialFileData(result.fileData);
+                try {
+                    // Fetch metadata first (smaller payload)
+                    const metadata = await convex.query(api.workspace.GetWorkspace, {
+                        workspaceId: id,
+                        includeFileData: false,
+                    });
+                    
+                    if (metadata) {
+                        setWorkspaceMetadata(metadata);
+                        setMessages(metadata.messages || []);
+                    }
+
+                    // Fetch file data separately after metadata is loaded
+                    const files = await convex.query(api.workspace.GetWorkspace, {
+                        workspaceId: id,
+                        includeFileData: true,
+                    });
+                    
+                    if (files?.fileData) {
+                        setInitialFileData(files.fileData);
+                    }
+                } catch (error) {
+                    console.error('Error fetching workspace:', error);
                 }
                 setDataLoaded(true);
             }

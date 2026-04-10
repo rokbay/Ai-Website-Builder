@@ -6,6 +6,7 @@ using System.Windows;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using AiWebsiteBuilder.Services;
+using System.Text;
 
 namespace AiWebsiteBuilder.Views
 {
@@ -13,6 +14,7 @@ namespace AiWebsiteBuilder.Views
     {
         private Process? _nextJsProcess;
         private WebMessageBridge? _webMessageBridge;
+        private readonly GeminiService _geminiService = new GeminiService();
         private const string LOCALHOST = "http://localhost:3000";
         private const int LAUNCH_DELAY = 3000; // Wait 3 seconds for Next.js to start
 
@@ -119,6 +121,29 @@ namespace AiWebsiteBuilder.Views
                     };
                 });
 
+                _webMessageBridge.OnRequest<dynamic>("streamAiCode", async (data) =>
+                {
+                    var prompt = data?.prompt?.ToString() ?? string.Empty;
+                    var config = data?.config;
+
+                    if (string.IsNullOrWhiteSpace(prompt))
+                    {
+                        return new { status = "error", message = "Prompt cannot be empty." };
+                    }
+
+                    if (!_geminiService.IsConfigured)
+                    {
+                        return new { status = "error", message = "Gemini API key is not configured." };
+                    }
+
+                    _ = Task.Run(async () =>
+                    {
+                        await StreamGeminiCode(prompt, config);
+                    });
+
+                    return new { status = "started" };
+                });
+
                 // Enable UI controls during initialization
                 RefreshButton.IsEnabled = true;
                 DevToolsButton.IsEnabled = true;
@@ -173,6 +198,44 @@ namespace AiWebsiteBuilder.Views
             {
                 UpdateStatus($"Error: {ex.Message}");
                 MessageBox.Show($"Failed to initialize WebView2:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task StreamGeminiCode(string prompt, dynamic config)
+        {
+            var model = config?.model?.ToString() ?? "gemini-flash-lite-latest";
+            var temperature = config?.temperature ?? 0.7;
+            var topP = config?.topP ?? 0.95;
+            var topK = config?.topK ?? 40;
+            var maxOutputTokens = config?.maxOutputTokens ?? 8192;
+
+            try
+            {
+                await _webMessageBridge?.NotifyAsync("status:update", new { message = "Streaming code from Gemini...", severity = "info" });
+                var builder = new StringBuilder();
+
+                Func<string, Task> onChunk = async (string chunk) =>
+                {
+                    builder.Append(chunk);
+                    await _webMessageBridge?.NotifyAsync("ai:stream:chunk", new { chunk });
+                };
+
+                await _geminiService.StreamCodeAsync(
+                    prompt,
+                    model,
+                    Convert.ToDouble(temperature),
+                    Convert.ToInt32(maxOutputTokens),
+                    Convert.ToDouble(topP),
+                    Convert.ToInt32(topK),
+                    onChunk);
+
+                await _webMessageBridge?.NotifyAsync("ai:stream:complete", new { final = builder.ToString() });
+                await _webMessageBridge?.NotifyAsync("status:update", new { message = "Gemini stream complete", severity = "success" });
+            }
+            catch (Exception ex)
+            {
+                await _webMessageBridge?.NotifyAsync("ai:stream:error", new { message = ex.Message });
+                await _webMessageBridge?.NotifyAsync("status:update", new { message = $"Gemini stream failed: {ex.Message}", severity = "error" });
             }
         }
 

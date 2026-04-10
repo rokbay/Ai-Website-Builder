@@ -48,7 +48,10 @@ export default function LaunchPanel() {
                 const workspaces = await Promise.all(
                     storedIds.map(async (id) => {
                         try {
-                            return await convex.query(api.workspace.GetWorkspace, { workspaceId: id });
+                            return await convex.query(api.workspace.GetWorkspace, {
+                                workspaceId: id,
+                                includeFileData: false,
+                            });
                         } catch (e) {
                             return null;
                         }
@@ -118,7 +121,7 @@ export default function LaunchPanel() {
             setMessages(msg);
             const workspaceID = await CreateWorkspace({
                 messages: [msg],
-                name: input.slice(0, 40) + (input.length > 40 ? '...' : '')
+                projectName: input.slice(0, 40) + (input.length > 40 ? '...' : '')
             });
 
             // Store in localStorage for "Recent Projects"

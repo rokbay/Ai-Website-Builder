@@ -1,16 +1,14 @@
 "use client"
-import React, { useContext, useState, useEffect, useCallback, memo } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Lookup from '@/data/Lookup';
 import { MessagesContext } from '@/context/MessagesContext';
-import axios from 'axios';
 import Prompt from '@/data/Prompt';
-import { useConvex, useMutation } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { useParams } from 'next/navigation';
 import { api } from '@/convex/_generated/api';
-import { Loader2Icon, Download } from 'lucide-react';
-import JSZip from 'jszip';
-
+import { Loader2Icon, Download, Code2, Zap } from 'lucide-react';
+import JSZip from 'jszip';import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
 const SandpackProvider = dynamic(() => import("@codesandbox/sandpack-react").then(mod => mod.SandpackProvider), { ssr: false });
 const SandpackLayout = dynamic(() => import("@codesandbox/sandpack-react").then(mod => mod.SandpackLayout), { ssr: false });
 const SandpackCodeEditor = dynamic(() => import("@codesandbox/sandpack-react").then(mod => mod.SandpackCodeEditor), { ssr: false });
@@ -24,6 +22,9 @@ function CodeView({ initialFileData }) {
     const { messages } = useContext(MessagesContext);
     const UpdateFiles = useMutation(api.workspace.UpdateFiles);
     const [loading, setLoading] = useState(false);
+    const [streamingContent, setStreamingContent] = useState('');
+    const [isDotNetStreaming, setIsDotNetStreaming] = useState(false);
+    const STREAMING_FILE = '/index.js';
 
     const preprocessFiles = useCallback((files) => {
         const processed = {};
@@ -41,6 +42,51 @@ function CodeView({ initialFileData }) {
         return processed;
     }, []);
 
+    const applyStreamingChunkToFiles = useCallback((chunk) => {
+        setFiles((prev) => {
+            const currentFile = prev[STREAMING_FILE] || { code: '' };
+            return {
+                ...prev,
+                [STREAMING_FILE]: {
+                    code: currentFile.code + chunk,
+                },
+            };
+        });
+    }, [STREAMING_FILE]);
+
+    useEffect(() => {
+        const unsubChunk = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (data) => {
+            if (data?.chunk) {
+                setStreamingContent((prev) => prev + data.chunk);
+                applyStreamingChunkToFiles(data.chunk);
+            }
+        });
+
+        const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, (data) => {
+            if (data?.final) {
+                setStreamingContent(data.final);
+                setFiles((prev) => ({
+                    ...prev,
+                    [STREAMING_FILE]: { code: data.final },
+                }));
+            }
+            setIsDotNetStreaming(false);
+            setLoading(false);
+        });
+
+        const unsubError = notificationSystem.subscribe(EVENTS.AI_STREAM_ERROR, (data) => {
+            console.error('AI stream error:', data?.message);
+            setIsDotNetStreaming(false);
+            setLoading(false);
+        });
+
+        return () => {
+            unsubChunk();
+            unsubComplete();
+            unsubError();
+        };
+    }, []);
+
     useEffect(() => {
         if (initialFileData) {
             const processedFiles = preprocessFiles(initialFileData);
@@ -51,11 +97,30 @@ function CodeView({ initialFileData }) {
 
     const GenerateAiCode = useCallback(async () => {
         setLoading(true);
+        setStreamingContent('');
         const PROMPT = JSON.stringify(messages) + " " + Prompt.CODE_GEN_PROMPT;
         
         const savedSettings = JSON.parse(localStorage.getItem('app_settings') || '{}');
+        const useDotNetBridge = typeof window !== 'undefined' && window.webMessageBridge?.request;
+        let dotNetStreamStarted = false;
 
         try {
+            if (useDotNetBridge) {
+                setIsDotNetStreaming(true);
+                dotNetStreamStarted = true;
+                await window.webMessageBridge.request('streamAiCode', {
+                    prompt: PROMPT,
+                    config: {
+                        temperature: savedSettings.temperature,
+                        model: savedSettings.aiModel,
+                        topP: savedSettings.topP ?? 0.95,
+                        topK: savedSettings.topK ?? 40,
+                        maxOutputTokens: savedSettings.maxOutputTokens ?? 8192,
+                    }
+                });
+                return;
+            }
+
             const response = await fetch('/api/gen-ai-code', {
                 method: 'POST',
                 headers: {
@@ -107,8 +172,11 @@ function CodeView({ initialFileData }) {
             }
         } catch (error) {
             console.error('Error generating AI code:', error);
-        } finally {
             setLoading(false);
+        } finally {
+            if (!dotNetStreamStarted) {
+                setLoading(false);
+            }
         }
     }, [messages, id, UpdateFiles, preprocessFiles]);
 
@@ -252,11 +320,22 @@ function CodeView({ initialFileData }) {
                 </SandpackProvider>
             </div>
 
-            {loading&&<div className='p-10 bg-gray-900 opacity-80 absolute top-0 
-            rounded-lg w-full h-full flex items-center justify-center'>
-                <Loader2Icon className='animate-spin h-10 w-10 text-white'/>
-                <h2 className='text-white'> Generating files...</h2>
-            </div>}
+            {loading && (
+                <div className='p-6 bg-black/85 absolute inset-0 rounded-lg w-full h-full flex flex-col items-center justify-center text-left z-20'>
+                    <div className='w-full max-w-4xl space-y-4'>
+                        <div className='flex items-center gap-3'>
+                            <Loader2Icon className='animate-spin h-10 w-10 text-white' />
+                            <div>
+                                <h2 className='text-lg font-bold text-white'>Generating files...</h2>
+                                <p className='text-sm text-slate-300'>Streaming AI code from local .NET bridge.</p>
+                            </div>
+                        </div>
+                        <div className='rounded-2xl border border-blue-500/30 bg-slate-950/95 p-4 min-h-[240px] overflow-auto'>
+                            <pre className='whitespace-pre-wrap break-words text-xs leading-5 text-slate-100'>{streamingContent || 'Waiting for stream...'}</pre>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
