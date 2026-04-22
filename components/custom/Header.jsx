@@ -58,12 +58,18 @@ function Header() {
                                 </h1>
                                 <div className="flex items-center gap-2">
                                     <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
-                                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em]">Core_Alpha_2.0</span>
+                                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em]">First of its Kind Synthesis</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Elite Status & Telemetry */}
+                        <div className="hidden xl:flex items-center gap-6 px-4 py-2 bg-white/[0.02] border border-white/5 rounded-2xl">
+                             <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] whitespace-nowrap">
+                                The World's First Real-Time Spec-Driven Synthesis Interface
+                             </span>
+                        </div>
+
                         <div className="hidden lg:flex items-center gap-12">
                             <div className="flex items-center gap-4 group">
                                 <div className="p-2.5 bg-white/[0.03] border border-white/5 rounded-xl group-hover:border-blue-500/20 transition-all">

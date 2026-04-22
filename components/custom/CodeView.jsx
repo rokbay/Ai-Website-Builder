@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect, useCallback, useMemo } from 're
 import dynamic from 'next/dynamic';
 import Lookup from '@/data/Lookup';
 import { MessagesContext } from '@/context/MessagesContext';
-import Prompt from '@/data/Prompt';
+import { SYSTEM_PROMPTS } from '@/prompts/system_prompts';
 import { useMutation } from 'convex/react';
 import { useParams } from 'next/navigation';
 import { api } from '@/convex/_generated/api';

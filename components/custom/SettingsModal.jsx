@@ -130,6 +130,7 @@ export default function SettingsModal() {
                                         <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash Lite (Optimized)</option>
                                         <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest)</option>
                                         <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Logic)</option>
+                                        <option value="lmstudio">LM Studio (Local Host)</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">

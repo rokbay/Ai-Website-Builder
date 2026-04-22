@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useContext, useEffect, useState, useCallback, memo } from 'react';
 import { Loader2Icon, Send, Terminal, Cpu, Zap } from "lucide-react";
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
-import Prompt from '@/data/Prompt';
+import { aiProviderManager } from '@/lib/AiProviderManager';
 import ReactMarkdown from 'react-markdown';
 
 const MessageItem = memo(({ msg, index }) => (
@@ -58,36 +58,31 @@ function ChatView() {
 
     const GetAiResponse = useCallback(async () => {
         const nextMessages = [...messages];
-        const msg = nextMessages[nextMessages.length - 1].content;
         
         try {
             setLoading(true);
-            const messageIndex = nextMessages.length;
-            const finalMessages = [...nextMessages, { role: 'ai', content: '' }];
             
-            // Update local state immediately for snappy UI
-            setMessages(finalMessages);
-            
-            // 1. Save placeholder to DB so the backend action has an index to mutate
-            await UpdateMessages({
-                messages: finalMessages,
-                workspaceId: id
-            });
-            
-            // 2. Trigger the real-time Convex Action to handle streaming natively
-            await streamAction({
+            const result = await aiProviderManager.getResponse({
+                messages: nextMessages,
                 workspaceId: id,
-                prompt: msg,
-                model: 'gemini-1.5-flash',
-                messageIndex: messageIndex
+                streamAction: streamAction,
+                updateMessages: UpdateMessages
             });
+
+            if (result.content) {
+                setMessages(result.messages);
+            }
             
         } catch (error) {
             console.error('Error getting AI response:', error);
+            notificationSystem.publish(EVENTS.STATUS_UPDATE, {
+                message: `Synthesis Error: ${error.message}`,
+                severity: 'error'
+            });
         } finally {
             setLoading(false);
         }
-    }, [messages, id, UpdateMessages, setMessages]);
+    }, [messages, id, UpdateMessages, setMessages, streamAction]);
 
     useEffect(() => {
         if (messages?.length > 0) {

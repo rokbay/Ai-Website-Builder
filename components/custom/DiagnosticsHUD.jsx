@@ -9,6 +9,7 @@ export default function DiagnosticsHUD() {
     const [isMounted, setIsMounted] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [latency, setLatency] = useState(0);
+    const [tokensPerSec, setTokensPerSec] = useState(0);
     const [provider, setProvider] = useState('cloud');
     const scrollRef = useRef(null);
 
@@ -21,6 +22,7 @@ export default function DiagnosticsHUD() {
         const unsubLatency = notificationSystem.subscribe(EVENTS.AI_LATENCY, (data) => {
             setLatency(data.ms);
             setProvider(data.provider);
+            if (data.tokensPerSec) setTokensPerSec(data.tokensPerSec);
         });
 
         return () => {
@@ -138,6 +140,14 @@ export default function DiagnosticsHUD() {
                             <div className="flex flex-col">
                                 <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-0.5">Provider</span>
                                 <span className="text-[10px] font-mono text-purple-500 font-bold leading-none uppercase">{provider}</span>
+                            </div>
+                        </div>
+                        <div className="h-6 w-px bg-white/5" />
+                        <div className="flex items-center gap-3 px-2">
+                            <Zap className="h-3.5 w-3.5 text-amber-500" />
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-0.5">Speed</span>
+                                <span className="text-[10px] font-mono text-amber-500 font-bold leading-none uppercase">{tokensPerSec} t/s</span>
                             </div>
                         </div>
                     </div>
