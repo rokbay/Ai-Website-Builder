@@ -16,6 +16,7 @@ export default function LaunchPanel() {
     const router = useRouter();
     const { setMessages } = useContext(MessagesContext);
     const CreateWorkspace = useMutation(api.workspace.CreateWorkspace);
+    const DeleteWorkspace = useMutation(api.workspace.DeleteWorkspace);
     const convex = useConvex();
 
     useEffect(() => {
@@ -46,6 +47,20 @@ export default function LaunchPanel() {
         { id: 3, name: 'E-Commerce', description: 'Product grid with shopping cart integration.', icon: '🛍️', prompt: 'Create a modern e-commerce store with product listings, shopping cart, and checkout functionality' },
         { id: 4, name: 'Portfolio', description: 'Professional showcase for creative work.', icon: '🎨', prompt: 'Build a professional portfolio website with projects showcase, skills section, and contact form' }
     ];
+
+    const clearLocalMemory = () => {
+        localStorage.removeItem('recent_workspaces');
+        setRecentWorkspaces([]);
+    };
+
+    const handleDeleteWorkspace = async (e, id) => {
+        e.stopPropagation();
+        await DeleteWorkspace({ workspaceId: id });
+        const storedIds = JSON.parse(localStorage.getItem('recent_workspaces') || '[]');
+        const updatedIds = storedIds.filter(storedId => storedId !== id);
+        localStorage.setItem('recent_workspaces', JSON.stringify(updatedIds));
+        setRecentWorkspaces(prev => prev.filter(ws => ws._id !== id));
+    };
 
     const onGenerate = async (input) => {
         if (!input.trim()) return;
@@ -195,6 +210,17 @@ export default function LaunchPanel() {
                     ))}
                 </div>
 
+                {activeTab === 'recent' && recentWorkspaces.length > 0 && (
+                    <div className="flex justify-center mb-8 mt-4">
+                        <button 
+                            onClick={clearLocalMemory}
+                            className="flex items-center gap-2 px-6 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-[10px] font-black text-red-400 uppercase tracking-[0.2em] hover:bg-red-500/20 transition-all"
+                        >
+                            Clear Local Memory
+                        </button>
+                    </div>
+                )}
+
                 {/* Dynamic Content Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {activeTab === 'create' && (
@@ -230,7 +256,14 @@ export default function LaunchPanel() {
                     ))}
 
                     {activeTab === 'recent' && recentWorkspaces.map(ws => (
-                        <div key={ws._id} onClick={() => router.push('/workspace/' + ws._id)} className="holographic-card p-6 group cursor-pointer">
+                        <div key={ws._id} onClick={() => router.push('/workspace/' + ws._id)} className="relative holographic-card p-6 group cursor-pointer">
+                            <button 
+                                onClick={(e) => handleDeleteWorkspace(e, ws._id)}
+                                className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20"
+                                title="Delete Workspace"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
                             <div className="flex justify-between items-start mb-6">
                                 <div className="p-2.5 bg-slate-900 rounded-lg border border-white/5">
                                     <Code2 className="h-5 w-5 text-indigo-400" />
@@ -239,8 +272,8 @@ export default function LaunchPanel() {
                                     {new Date(ws._creationTime).toLocaleDateString()}
                                 </span>
                             </div>
-                            <h3 className="text-lg font-black text-white mb-2 truncate uppercase tracking-tighter group-hover:text-blue-400 transition-colors">
-                                {ws.name || 'DECRYPTED_WORKSPACE'}
+                            <h3 className="text-lg font-black text-white mb-2 truncate uppercase tracking-tighter group-hover:text-blue-400 transition-colors mr-8">
+                                {ws.projectName || 'DECRYPTED_WORKSPACE'}
                             </h3>
                             <p className="text-[10px] text-slate-500 font-medium mb-6 italic truncate">
                                 "{ws.messages?.[0]?.content}"
@@ -248,6 +281,12 @@ export default function LaunchPanel() {
                             <div className="flex items-center gap-2 text-[9px] font-black text-indigo-400 uppercase tracking-widest">
                                 Reconnect Stream <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                             </div>
+                            {ws.benchmarks && (
+                                <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-[8px] font-mono text-slate-500">
+                                    <span>TTFB: {ws.benchmarks.ttfb}ms</span>
+                                    <span>GEN: {ws.benchmarks.duration}ms</span>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

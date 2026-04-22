@@ -1,66 +1,44 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { AIProviderFactory } from "@/lib/ai/ProviderFactory";
+import { ExtremePrompts } from "@/lib/ai/prompts";
+import { notificationSystem, EVENTS } from "@/lib/NotificationSystem";
 
 export async function POST(req) {
-    const {prompt, config} = await req.json();
+    const { prompt, config } = await req.json();
+
     try {
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const modelName = config?.model || "gemini-flash-lite-latest";
-        const model = genAI.getGenerativeModel({ model: modelName });
+        // Build the extreme system prompt
+        const fullPrompt = ExtremePrompts.CODE_GEN_BASE(prompt);
 
-        // Apply user-defined AI configuration if provided
-        const generationConfig = {
-            temperature: config?.temperature ?? 1,
-            topP: 0.95,
-            topK: 40,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json",
-        };
-
-        const chat = model.startChat({ generationConfig });
-        const result = await chat.sendMessageStream(prompt);
+        const providerInfo = await AIProviderFactory.getStream(fullPrompt, config);
         
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
                 try {
                     let fullText = '';
-                    for await (const chunk of result.stream) {
-                        const chunkText = chunk.text();
-                        fullText += chunkText;
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({chunk: chunkText})}\n\n`));
+                    const it = providerInfo.iterator();
+                    
+                    for await (const chunk of it) {
+                        fullText += chunk;
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
                     }
-                    // Send final complete response
+                    
+                    // Final response completion
+                    let finalJson = {};
                     try {
-                        // Extract JSON from potential markdown code blocks if the AI includes them
-                        let jsonString = fullText;
-                        if (fullText.includes('```json')) {
-                            jsonString = fullText.split('```json')[1].split('```')[0];
-                        } else if (fullText.includes('```')) {
-                            jsonString = fullText.split('```')[1].split('```')[0];
-                        }
-
-                        const parsedData = JSON.parse(jsonString.trim());
-
-                        // Sanitize files object for duplicate keys and valid structure
-                        if (parsedData.files) {
-                            const sanitizedFiles = {};
-                            Object.keys(parsedData.files).forEach(key => {
-                                // Prevent duplicate-ish keys (e.g., 'App.js' and '/App.js')
-                                const cleanKey = key.startsWith('/') ? key : '/' + key;
-                                sanitizedFiles[cleanKey] = parsedData.files[key];
-                            });
-                            parsedData.files = sanitizedFiles;
-                        }
-
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({final: parsedData, done: true})}\n\n`));
+                        const jsonStr = fullText.match(/\{[\s\S]*\}/)?.[0] || fullText;
+                        finalJson = JSON.parse(jsonStr);
                     } catch (e) {
-                        console.error('JSON Parse Error:', e, fullText);
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({error: 'Invalid JSON response: ' + e.message, done: true})}\n\n`));
+                        console.warn("[API] Failed to parse final JSON, returning raw text.");
+                        finalJson = { files: { "/App.js": { code: fullText } }, explanation: "Partial synthesis recovered." };
                     }
+
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ final: finalJson, done: true })}\n\n`));
                     controller.close();
                 } catch (e) {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({error: e.message || 'Code generation failed'})}\n\n`));
+                    console.error("[API_STREAM_ERROR]", e);
+                    notificationSystem.notify(EVENTS.AI_STREAM_ERROR, { message: e.message });
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: e.message || 'Stream synthesis collapsed' })}\n\n`));
                     controller.close();
                 }
             },
@@ -74,7 +52,9 @@ export async function POST(req) {
             },
         });
     } catch(e) {
-        return new Response(JSON.stringify({error: e.message || 'Code generation failed'}), {
+        console.error("[API_POST_ERROR]", e);
+        notificationSystem.notify(EVENTS.AI_STREAM_ERROR, { message: e.message });
+        return new Response(JSON.stringify({ error: e.message || 'Synthesis workflow initiation failed' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

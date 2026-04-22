@@ -16,6 +16,15 @@ export const CreateWorkspace = mutation({
     }
 })
 
+export const DeleteWorkspace = mutation({
+    args: {
+        workspaceId: v.id('workspace')
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.delete(args.workspaceId);
+    }
+});
+
 export const GetWorkspace = query({ 
     args:{
         workspaceId:v.id('workspace'),
@@ -78,7 +87,8 @@ export const GetWorkspaceMetadata = query({
             messages: result.messages,
             isStreaming: result.isStreaming,
             createdAt: result.createdAt,
-            lastUpdated: result.lastUpdated
+            lastUpdated: result.lastUpdated,
+            benchmarks: result.benchmarks
         };
     }
 })
@@ -93,4 +103,43 @@ export const GetWorkspaceFiles = query({
         return result?.fileData || null;
     }
 })
+
+// REAL-TIME STREAMING MUTATIONS
+export const SetStreamingStatus = mutation({
+    args: {
+        workspaceId: v.id('workspace'),
+        isStreaming: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.workspaceId, { isStreaming: args.isStreaming });
+    }
+});
+
+export const UpdateStreamingMessage = mutation({
+    args: {
+        workspaceId: v.id('workspace'),
+        messageIndex: v.number(),
+        content: v.string(),
+        benchmarks: v.optional(v.object({ ttfb: v.number(), duration: v.number() }))
+    },
+    handler: async (ctx, args) => {
+        const workspace = await ctx.db.get(args.workspaceId);
+        if (!workspace) return;
+        
+        const newMessages = [...workspace.messages];
+        if (newMessages[args.messageIndex]) {
+            newMessages[args.messageIndex].content = args.content;
+            
+            const patchData = {
+                messages: newMessages,
+                lastUpdated: Date.now()
+            };
+            if (args.benchmarks) {
+                patchData.benchmarks = args.benchmarks;
+            }
+            
+            await ctx.db.patch(args.workspaceId, patchData);
+        }
+    }
+});
 

@@ -1,30 +1,27 @@
-import { chatSession } from "@/configs/AiModel";
-import Prompt from "@/data/Prompt";
+import { AIProviderFactory } from "@/lib/ai/ProviderFactory";
+import { ExtremePrompts } from "@/lib/ai/prompts";
+import { notificationSystem, EVENTS } from "@/lib/NotificationSystem";
 
-export async function POST(request) {
+export async function POST(req) {
+    const { prompt, config } = await req.json();
+
     try {
-        const { prompt } = await request.json();
-        
-        const result = await chatSession.sendMessageStream([
-            Prompt.ENHANCE_PROMPT_RULES,
-            `Original prompt: ${prompt}`
-        ]);
+        const fullPrompt = ExtremePrompts.ENHANCE_BASE(prompt);
+        const providerInfo = await AIProviderFactory.getStream(fullPrompt, config);
         
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    let fullText = '';
-                    for await (const chunk of result.stream) {
-                        const chunkText = chunk.text();
-                        fullText += chunkText;
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({chunk: chunkText})}\n\n`));
+                    const it = providerInfo.iterator();
+                    for await (const chunk of it) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
                     }
-                    // Send final complete response
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({enhancedPrompt: fullText.trim(), done: true})}\n\n`));
                     controller.close();
                 } catch (e) {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({error: e.message, success: false})}\n\n`));
+                    console.error("[ENHANCE_STREAM_ERROR]", e);
+                    notificationSystem.notify(EVENTS.AI_STREAM_ERROR, { message: e.message });
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: e.message || 'Enhance synthesis failed' })}\n\n`));
                     controller.close();
                 }
             },
@@ -37,13 +34,12 @@ export async function POST(request) {
                 'Connection': 'keep-alive',
             },
         });
-    } catch (error) {
-        return new Response(JSON.stringify({ 
-            error: error.message,
-            success: false 
-        }), {
+    } catch(e) {
+        console.error("[ENHANCE_POST_ERROR]", e);
+        notificationSystem.notify(EVENTS.AI_STREAM_ERROR, { message: e.message });
+        return new Response(JSON.stringify({ error: e.message || 'Enhance initiation failed' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
-} 
+}

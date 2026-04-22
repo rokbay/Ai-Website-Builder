@@ -97,7 +97,7 @@ export const NotificationDisplay = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[8px] font-black uppercase tracking-widest opacity-40">
-                                                    {notif.type.split(':').pop()}
+                                                    {notif.type?.split(':').pop() || 'SYSTEM'}
                                                 </span>
                                                 <span className="text-[8px] font-mono opacity-30">
                                                     {new Date(notif.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}

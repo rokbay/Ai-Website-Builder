@@ -62,7 +62,7 @@ dotnet build -c Debug AiWebsiteBuilder.csproj
 if errorlevel 1 (
     echo ERROR: Build failed
     pause
-    exit /b 1
+    exit /b 15
 )
 
 echo.
