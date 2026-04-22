@@ -2,7 +2,8 @@
 
 - `[ ]` **Phase 1: AI Provider Abstraction**
     - `[ ]` Extract Extreme Prompts to `/prompts`
-    - `[ ]` Implement Ollama (Local) support in API routes
+    - `[ ]` Implement LM Studio support via Client-Side Direct Routing (Solution A)
+    - `[ ]` Bypass Convex for local model synthesis in `ChatView.jsx`
     - `[ ]` Add Provider Switcher capability
 - `[ ]` **Phase 2: Performance Triage**
     - `[ ]` Implement Parallel Strategy handshakes

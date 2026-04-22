@@ -4,8 +4,8 @@ This plan details the technical steps to achieve the objectives defined in `spec
 
 ## Phase 1: AI Provider Abstraction
 - [ ] Create `/prompts` folder and migrate "Extreme Prompting" logic from `AiModel.jsx`.
-- [ ] Implement `AiProviderManager.js` to handle switching between Gemini and Local (Ollama) endpoints.
-- [ ] Update `app/api/gen-ai-code/route.jsx` to use the bridge-selected provider.
+- [ ] Implement `AiProviderManager.js` to handle switching between Gemini (Convex) and LM Studio (Client-Side Direct).
+- [ ] Update `ChatView.jsx` to detect "LM Studio" and perform direct `fetch` to `localhost:1234`, bypassing Convex for local generation.
 
 ## Phase 2: Performance Triage
 - [ ] Refactor `ConnectivityChecker.js`: 
@@ -24,5 +24,5 @@ This plan details the technical steps to achieve the objectives defined in `spec
 - [ ] Refactor `Dashboard` to support the new "Production Debugging" layout.
 
 ## Phase 4: Verification
-- [ ] Manual test of Local Model generation.
+- [ ] Manual test of Local Model generation (Verify browser console shows direct fetch to :1234).
 - [ ] Network tab audit to ensure connectivity check is <200ms.
