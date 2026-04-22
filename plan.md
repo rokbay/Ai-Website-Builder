@@ -1,4 +1,4 @@
-# Implementation Plan: AI-Website-Builder Overhaul
+# Implementation Plan: Bolt Engine Synthesis Interface
 
 This plan details the technical steps to achieve the objectives defined in `spec.md`.
 
@@ -14,7 +14,9 @@ This plan details the technical steps to achieve the objectives defined in `spec
 - [ ] Optimize `WebMessageBridge.js` with batching for large code generation updates.
 
 ## Phase 3: GUI & Debugging Overhaul
-- [ ] Implement Global Theme Provider (Carbon/Steel).
+- [ ] Implement Global Theme Provider (Obsidian & Deep Sea / Seamless Design).
+- [ ] Render `SettingsModal` in `app/layout.js` or root level to fix icon click logic.
+- [ ] Apply "Bolt Engine" branding and "First of its Kind" statements in `Header.jsx`.
 - [ ] Create `DiagnosticsHud` component:
     - Live feed of `WebMessage` IPC logs.
     - AI Response token/second counter.

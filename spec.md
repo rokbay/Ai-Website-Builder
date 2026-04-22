@@ -1,7 +1,7 @@
-# Technical Specification: AI-Website-Builder Enhancement
+# Technical Specification: Bolt Engine (SDD Synthesis Interface)
 
 ## 1. Goal
-Transition the AI-Website-Builder project into a high-performance, local-first development tool with a production-grade interface and diagnostics.
+Transition the project into **Bolt Engine**—the world's first real-time Spec-Driven Synthesis Interface. The interface must be high-performance, local-first, and feature a seamless, premium design.
 
 ## 2. Requirements
 
@@ -15,8 +15,9 @@ Transition the AI-Website-Builder project into a high-performance, local-first d
 - **Redundant Configs:** Eliminate duplicate configuration objects in `AiModel.jsx` and `ConnectivityChecker.js`.
 
 ### 2.3 GUI Overhaul
-- **Design:** Modern "Carbon-Steel" aesthetic (Tailwind 4 / Lucide).
-- **Debugging:** Integrated side-HUD showing:
+- **Design:** Seamless "Obsidian & Deep Sea" aesthetic (Tailwind 4 / Lucide). Move away from dark metallic looks to a more fluid, translucent glassmorphism design.
+- **Branding:** Include "Bolt Engine — The World's First Real-Time Spec-Driven Synthesis Interface" prominently in the header.
+- **Settings Modal:** Ensure the `SettingsModal` is correctly rendered in the root layout and functional.
   - Current IPC Traffic (WebMessageBridge).
   - Selected AI Model latency.
   - Active Connectivity Strategy.

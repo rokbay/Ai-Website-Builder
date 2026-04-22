@@ -57,7 +57,9 @@
 <div align="center">
   <br/>
   
-  > 🌟 **AI Website Builder** is a cutting-edge platform that revolutionizes web development by combining the power of **Gemini Flash 2.0 AI** with modern web technologies. Transform your ideas into fully functional, beautiful websites using natural language - no coding experience required!
+  > 🌟 **Bolt Engine** is the world's first **Real-Time Spec-Driven Synthesis Interface**. It revolutionizes web development by combining the power of **Gemini Flash 2.0 AI** with a high-frequency Convex backend to stream functional code directly into a live IDE.
+  
+  > 🛠️ **Latest Updates**: We recently overhauled the backend for native streaming, secured all API gateways, and integrated a live AST-based DOM/CSSOM structure viewer. See our [Engineering Log](docs/engineering_log.md) for full technical details.
   
 </div>
 <div  align="center">
