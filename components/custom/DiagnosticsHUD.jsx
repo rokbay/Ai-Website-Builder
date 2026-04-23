@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
-import { Activity, Signal, Cpu, Terminal, ChevronUp, ChevronDown, Database, Trash2, Maximize2, X } from 'lucide-react';
+import { Activity, Signal, Cpu, Terminal, ChevronUp, ChevronDown, Database, Trash2, Maximize2, X, Zap } from 'lucide-react';
 
 export default function DiagnosticsHUD() {
     const [messages, setMessages] = useState([]);

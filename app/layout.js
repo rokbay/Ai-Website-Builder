@@ -22,7 +22,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="bg-black scroll-smooth">
+    <html lang="en" className="bg-black scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         <script
@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={`${inter.className} selection:bg-blue-600/30 selection:text-white`}>
+      <body className={`${inter.className} bg-[#020617] text-white antialiased selection:bg-blue-600/30 selection:text-white`}>
         <ClientLayout>
           {children}
         </ClientLayout>
