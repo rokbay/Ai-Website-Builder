@@ -1,17 +1,26 @@
-# 🤖 Agentic Handoff Protocol: Architect to Builder
+# ⚖️ THE SPEC-DRIVEN CONSTITUTION (Bolt Engine Edition)
 
-This protocol ensures stable synthesis during autonomous implementation by Jules (the Builder).
+This document formalizes the immutable principles governing the development of the Bolt Engine.
 
-## 🛡️ Circuit Breaker Safeguards
-1. **The Branching Rule**: Every implementation session must begin with `git checkout -b feature/auto-jules-[task-name]`. DO NOT commit directly to `main`.
-2. **Granular Commits**: Commit every file immediately after modification. This allows for partial recovery if a later step fails.
-3. **Pre-Flight Validation**: Jules must verify imports and hydration compatibility before finalizing any Next.js layout changes.
+## ARTICLE I: SPECIFICATIONS AS THE SOURCE OF TRUTH
+- **Intent Over Implementation**: Every change begins with an evolution of the specification (`spec.md`).
+- **Blueprints Mandatory**: No code is generated without an approved `plan.md` and `tasks.md`.
 
-## 📋 Pre-Flight Checklist
-- [ ] **Imports**: Verify `useState`, `useEffect`, and `lucide-react` icons are explicitly imported.
-- [ ] **Hydration**: Check for `suppressHydrationWarning` on the `<html>` tag in `layout.js`.
-- [ ] **Mounting**: Ensure new components are explicitly mounted in the global `ClientLayout.jsx`.
-- [ ] **Performance**: Route telemetry logs to the in-memory buffer.
+## ARTICLE II: ARCHITECTURAL GATES
+1. **Library-First**: New features must be encapsulated in modular libraries.
+2. **CLI-First**: All logic must be verifiable via text-based IPC.
+3. **Test-First**: Implementation code requires pre-existing, failing tests.
+
+## ARTICLE III: THE AGENTIC HANDOFF (CIRCUIT BREAKER)
+- **Branch Isolation**: All autonomous synthesis (Jules) must occur on `feature/auto-jules-` branches.
+- **Granular Commits**: Commit every file modification immediately.
+- **Pre-Flight Checklist**: Mandatory validation of imports, hydration, and design tokens.
+
+## 📋 PRE-FLIGHT CHECKLIST
+- [ ] **Imports**: Verify `useState`, `useEffect`, and `lucide-react` icons.
+- [ ] **Hydration**: `suppressHydrationWarning` on root `<html>`.
+- [ ] **Mounting**: Explicitly mount in `ClientLayout.jsx`.
+- [ ] **Performance**: In-memory buffers for high-frequency logs.
 - [ ] **Design**: Adhere to 'Obsidian & Deep Sea' tokens (`bg-[#020617]`, Cyan accents).
 
 ---
