@@ -14,6 +14,10 @@
 - **Issue**: The `.env.local` file was accidentally overwritten, losing the `NEXT_PUBLIC_CONVEX_URL` and `CONVEX_DEPLOYMENT`.
 - **Fix**: Successfully re-initialized the environment via `npx convex dev` through a remote PowerShell process, restoring connectivity to the `quirky-goose-237` deployment.
 
-## 4. Pending Issue: Settings Modal Disconnect
-- **Issue**: The Settings icon in `Header.jsx` dispatches an `open-settings` event, and `SettingsModal.jsx` listens for it, but `SettingsModal` is **not rendered** in any active page or layout.
-- **Status**: Identified. Requires placement in the root layout or header to enable functionality.
+## 4. Resolved Issue: Settings Modal Disconnect
+- **Issue**: The Settings icon in `Header.jsx` dispatched an event, but the modal was not rendered.
+- **Fix**: Mounted `<SettingsModal />` in `ClientLayout.jsx` for global availability.
+
+## 5. Implementation Handoff
+A comprehensive documentation of the **Bolt Engine** overhaul is available in:
+- [implementation_handoff.md](file:///C:/Users/ZYAD/Desktop/Ai-Website-Builder/docs/implementation_handoff.md)
