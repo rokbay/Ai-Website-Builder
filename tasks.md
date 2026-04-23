@@ -1,14 +1,17 @@
-# Tasks: Payload Size Telemetry
+# Tasks: High-Performance Connectivity & Memory Refactor
 
 ## 🤖 PRE-FLIGHT CHECKLIST
-- [ ] **The Import Rule:** Verify imports in `AiProviderManager.js` and `DiagnosticsHUD.jsx`.
-- [ ] **The Hydration Rule:** N/A (Client components).
-- [ ] **The Mounting Rule:** Ensure HUD remains mounted in `ClientLayout`.
-- [ ] **The Performance Rule:** Use `useMemo` or debounced updates for the HUD if necessary.
-- [ ] **Design System Adherence:** Use `text-cyan-400` for the new metric label.
+- [ ] **The Singleton Rule:** `Object.freeze(notificationSystem)` - Verify address stability.
+- [ ] **The Builder Rule:** Use `SessionConnectionBuilder` - No monolithic initialization.
+- [ ] **The Buffer Rule:** Use `Uint8Array/Buffer` pools for streams - No string `+=`.
+- [ ] **The Thread Rule:** Offload serialization to `worker_threads`.
+- [ ] **The Memory Rule:** Verify `--max-old-space-size=8192` is set in `.env`.
 - [ ] **Granular Commits**: Commit after every file modification.
 
 ## Implementation Tasks
-- [ ] **[MODIFY] [NotificationSystem.js](file:///lib/NotificationSystem.js)**: Add `PAYLOAD_METRICS` event.
-- [ ] **[MODIFY] [AiProviderManager.js](file:///lib/AiProviderManager.js)**: Implement size calculation and event dispatch.
-- [ ] **[MODIFY] [DiagnosticsHUD.jsx](file:///components/custom/DiagnosticsHUD.jsx)**: Add display row and event listener.
+- [ ] **[MODIFY] [NotificationSystem.js](file:///lib/NotificationSystem.js)**: Strict Singleton + Map subscribers.
+- [ ] **[MODIFY] [ConvexConnectivity.js](file:///lib/ConvexConnectivity.js)**: Implement Fluent Builder.
+- [ ] **[MODIFY] [useConnectivity.js](file:///lib/useConnectivity.js)**: Hook refactor.
+- [ ] **[NEW] [DiagnosticsHUD.jsx](file:///components/custom/DiagnosticsHUD.jsx)**: Localized Redis metrics display.
+- [ ] **[NEW] [lib/redisManager.js](file:///lib/redisManager.js)**: Upstash integration & Flush logic.
+- [ ] **[NEW] [lib/workers/PayloadProcessor.js](file:///lib/workers/PayloadProcessor.js)**: Worker pool for offloading.

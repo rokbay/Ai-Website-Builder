@@ -1,20 +1,28 @@
-# Implementation Plan: Payload Size Telemetry
+# Implementation Plan: Redis Sharding, Builder Pattern & Memory Tuning
 
-## Phase 1: Telemetry Logic
-- [ ] Modify `lib/AiProviderManager.js`:
-  - Implement a helper function `calculatePayloadSize(messages)`.
-  - In `generateLocalResponse` and `generateCloudResponse`, calculate the size and dispatch a `PAYLOAD_METRICS` event.
+## Phase 1: Core System Hardening
+- [ ] Refactor `lib/NotificationSystem.js`:
+  - Implement `Object.freeze` Singleton.
+  - Map-based subscriber management.
+  - Export `redisMetrics` telemetry helpers.
 
-## Phase 2: HUD Integration
-- [ ] Modify `components/custom/DiagnosticsHUD.jsx`:
-  - Listen for the `PAYLOAD_METRICS` event.
-  - Update local state `contextSize`.
-  - Add a new status row to the "Synthesis" group: `Context: {size} KB`.
+## Phase 2: Sharded Connectivity (Builder Pattern)
+- [ ] Refactor `lib/ConvexConnectivity.js`:
+  - Implement `SessionShard` and `SessionConnectionBuilder`.
+  - Fold `ConnectivityChecker` logic into the `.withLocalFallback()` builder method.
+- [ ] Modify `lib/useConnectivity.js`:
+  - Update hook to utilize the fluent builder.
 
-## Phase 3: Event Bus Update
-- [ ] Modify `lib/NotificationSystem.js`:
-  - Add `PAYLOAD_METRICS` to the `EVENTS` enum.
+## Phase 3: Redis Stream & Buffer Pooling
+- [ ] Setup `lib/redisManager.js`.
+- [ ] Implement `Buffer` pooling for AI streams to replace string concatenation.
+- [ ] Integrate the "Single-Flush" Convex strategy.
 
-## Phase 4: Verification
-- [ ] Run the app and trigger a synthesis request.
-- [ ] Confirm HUD displays the correct payload size.
+## Phase 4: Threaded Offloading & Environment
+- [ ] Implement `lib/workers/PayloadProcessor.js` using `worker_threads`.
+- [ ] Offload AST/JSON serialization to the worker pool.
+- [ ] Update `.env` with `NODE_OPTIONS="--max-old-space-size=8192"`.
+
+## Phase 5: UI & Diagnostics
+- [ ] Implement localized `DiagnosticsHUD.jsx` for isolated Redis metrics re-renders.
+- [ ] Verify 60FPS UI performance during high-frequency synthesis.
