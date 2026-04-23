@@ -1,19 +1,22 @@
-# Technical Specification: Critical Hotfix (Hydration & Icons)
+# Technical Specification: Payload Size Telemetry
 
 ## 1. Goal
-Fix immediate runtime crashes (Hydration mismatch and ReferenceError) and enforce the "Obsidian" baseline theme.
+Implement real-time measurement and display of the AI request payload size to prevent context window overflow and avoid throttling.
 
 ## 2. Requirements
-### 2.1 Hydration Fix
-- **Target**: `app/layout.js`
-- **Action**: Add `suppressHydrationWarning` to the `<html>` tag to handle client-side theme injection.
-- **Theme**: Set `<body>` classes to `bg-[#020617] text-white antialiased`.
+### 2.1 Payload Calculation
+- **Metric**: Calculate the byte size of the `messages` array using `new Blob([JSON.stringify(messages)]).size`.
+- **Trigger**: Every time a synthesis request is prepared (before `fetch`).
 
-### 2.2 Missing Icon Fix
-- **Target**: `components/custom/DiagnosticsHUD.jsx`
-- **Issue**: `ReferenceError: Zap is not defined`.
-- **Action**: Import `Zap` from `lucide-react`.
+### 2.2 Telemetry Dispatch
+- **Event**: Dispatch a `PAYLOAD_METRICS` event via the `notificationSystem`.
+- **Data**: Include `byteSize` and `estimatedTokens` (Size / 4 as a rough heuristic).
+
+### 2.3 UI Integration
+- **Component**: `DiagnosticsHUD.jsx`.
+- **Display**: Add a "Context Payload" metric showing the size in KB/MB (e.g., `42.5 KB`).
+- **Threshold Alerts**: Highlight the metric in yellow if > 20 KB and red if > 30 KB (configurable baseline for safety).
 
 ## 3. Verification
-- App should load without hydration warnings in console.
-- Diagnostics HUD should render correctly with the `Zap` icon visible.
+- HUD should update its value immediately before the AI starts typing.
+- Network tab in DevTools should show request payload sizes roughly matching the HUD metrics.
