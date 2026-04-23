@@ -1,20 +1,13 @@
-# Tasks: Bolt Engine Synthesis Interface
+# Tasks: Critical Runtime Hotfixes
 
-- `[ ]` **Phase 1: AI Provider Abstraction**
-    - `[ ]` Extract Extreme Prompts to `/prompts`
-    - `[ ]` Implement LM Studio support via Client-Side Direct Routing (Solution A)
-    - `[ ]` Bypass Convex for local model synthesis in `ChatView.jsx`
-    - `[ ]` Add Provider Switcher capability
-- `[ ]` **Phase 2: Performance Triage**
-    - `[ ]` Implement Parallel Strategy handshakes
-    - `[ ]` Tune connectivity timeouts
-    - `[ ]` Optimize IPC Serialization
-- `[ ]` **Phase 3: GUI Overhaul**
-    - `[ ]` Apply "Obsidian & Deep Sea" Seamless Design tokens
-    - `[ ]` Fix `SettingsModal` rendering in root layout
-    - `[ ]` Implement "Bolt Engine" branding & "First of its Kind" UI elements
-    - `[ ]` Build Integrated Diagnostics HUD
-    - `[ ]` Final visual polish (Fluid Animations/Glassmorphism)
-- `[ ]` **Phase 4: Verification**
-    - `[ ]` Test local model e2e
-    - `[ ]` Verify connectivity latency < 200ms
+## 🤖 PRE-FLIGHT CHECKLIST
+- [ ] **The Import Rule:** Verify and explicitly import all components, hooks, and icons (`lucide-react`).
+- [ ] **The Hydration Rule:** Ensure `suppressHydrationWarning` is on the `<html>` tag.
+- [ ] **The Mounting Rule:** No orphaned components.
+- [ ] **The Performance Rule:** Route high-frequency logs to the in-memory buffer.
+- [ ] **Design System Adherence:** Strictly follow 'Obsidian & Deep Sea' tokens.
+- [ ] **Granular Commits**: Commit after every file modification.
+
+## Implementation Tasks
+- [ ] **[MODIFY] [layout.js](file:///app/layout.js)**: Add hydration warning suppression and baseline theme classes.
+- [ ] **[MODIFY] [DiagnosticsHUD.jsx](file:///components/custom/DiagnosticsHUD.jsx)**: Fix missing `Zap` icon import.
