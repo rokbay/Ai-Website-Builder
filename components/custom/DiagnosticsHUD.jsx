@@ -11,6 +11,8 @@ export default function DiagnosticsHUD() {
     const [latency, setLatency] = useState(0);
     const [tokensPerSec, setTokensPerSec] = useState(0);
     const [provider, setProvider] = useState('cloud');
+    const [payloadSize, setPayloadSize] = useState('0 KB');
+    const [payloadColor, setPayloadColor] = useState('text-cyan-400');
     const scrollRef = useRef(null);
 
     useEffect(() => {
@@ -25,9 +27,23 @@ export default function DiagnosticsHUD() {
             if (data.tokensPerSec) setTokensPerSec(data.tokensPerSec);
         });
 
+        const unsubPayload = notificationSystem.subscribe(EVENTS.PAYLOAD_METRICS, (data) => {
+            const kb = data.byteSize / 1024;
+            setPayloadSize(`${kb.toFixed(1)} KB`);
+
+            if (kb > 30) {
+                setPayloadColor('text-red-500');
+            } else if (kb > 20) {
+                setPayloadColor('text-yellow-500');
+            } else {
+                setPayloadColor('text-cyan-400');
+            }
+        });
+
         return () => {
             unsubLog();
             unsubLatency();
+            unsubPayload();
         };
     }, []);
 
@@ -148,6 +164,14 @@ export default function DiagnosticsHUD() {
                             <div className="flex flex-col">
                                 <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-0.5">Speed</span>
                                 <span className="text-[10px] font-mono text-amber-500 font-bold leading-none uppercase">{tokensPerSec} t/s</span>
+                            </div>
+                        </div>
+                        <div className="h-6 w-px bg-white/5" />
+                        <div className="flex items-center gap-3 px-2">
+                            <Signal className={`h-3.5 w-3.5 ${payloadColor}`} />
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-0.5">Payload</span>
+                                <span className={`text-[10px] font-mono ${payloadColor} font-bold leading-none uppercase`}>{payloadSize}</span>
                             </div>
                         </div>
                     </div>
