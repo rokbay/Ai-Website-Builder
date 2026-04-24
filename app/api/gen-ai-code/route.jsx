@@ -1,9 +1,13 @@
 import { AIProviderFactory } from "@/lib/ai/ProviderFactory";
 import { ExtremePrompts } from "@/lib/ai/prompts";
 import { notificationSystem, EVENTS } from "@/lib/NotificationSystem";
+import { redisManager } from "@/lib/redisManager";
+import { payloadProcessor } from "@/lib/payloadProcessor";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req) {
     const { prompt, config } = await req.json();
+    const streamId = uuidv4();
 
     try {
         // Build the extreme system prompt
@@ -15,14 +19,20 @@ export async function POST(req) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    let fullText = '';
                     const it = providerInfo.iterator();
                     
                     for await (const chunk of it) {
-                        fullText += chunk;
+                        // The Buffer Rule: Append to Redis
+                        await redisManager.appendToBuffer(streamId, chunk);
                         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
                     }
                     
+                    // Final Synthesis: Flush from Redis
+                    const fullText = await redisManager.flushBuffer(streamId);
+
+                    // The Thread Rule: Offload metrics
+                    payloadProcessor.processMetrics(fullText).catch(console.error);
+
                     // Final response completion
                     let finalJson = {};
                     try {
