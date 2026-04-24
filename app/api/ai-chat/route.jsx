@@ -1,8 +1,12 @@
 import { AIProviderFactory } from "@/lib/ai/ProviderFactory";
 import { notificationSystem, EVENTS } from "@/lib/NotificationSystem";
+import { redisManager } from "@/lib/redisManager";
+import { payloadProcessor } from "@/lib/payloadProcessor";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req) {
     const { prompt, config } = await req.json();
+    const streamId = uuidv4();
 
     try {
         const providerInfo = await AIProviderFactory.getStream(prompt, config);
@@ -11,26 +15,20 @@ export async function POST(req) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    let buffer = []; // Array of Uint8Arrays
                     const it = providerInfo.iterator();
                     
                     for await (const chunk of it) {
-                        const uint8 = encoder.encode(chunk);
-                        buffer.push(uint8);
+                        // The Buffer Rule: Append to Redis buffer
+                        await redisManager.appendToBuffer(streamId, chunk);
                         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
                     }
                     
-                    // Combine all chunks for final output
-                    const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
-                    const combined = new Uint8Array(totalLength);
-                    let offset = 0;
-                    for (const b of buffer) {
-                        combined.set(b, offset);
-                        offset += b.length;
-                    }
-                    const fullText = new TextDecoder().decode(combined);
+                    // Final Synthesis: Flush from Redis
+                    const fullText = await redisManager.flushBuffer(streamId);
 
-                    // Final response completion
+                    // The Thread Rule: Offload metrics calculation
+                    payloadProcessor.processMetrics(fullText).catch(console.error);
+
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ result: fullText, done: true })}\n\n`));
                     controller.close();
                 } catch (e) {

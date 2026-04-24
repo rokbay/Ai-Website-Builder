@@ -16,10 +16,14 @@ export const StreamAiAction = action({
     await ctx.runMutation(api.workspace.SetStreamingStatus, { workspaceId, isStreaming: true });
 
     try {
-      let buffer = []; // Array of Uint8Arrays
       const isLocal = model.toLowerCase().includes('ollama') || model.toLowerCase().includes('lmstudio');
       
       const apiKey = process.env.GEMINI_API_KEY;
+      const redisUrl = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL;
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+      const streamId = `${workspaceId}-${messageIndex}`;
+      const redisKey = `stream:${streamId}`;
+
       const endpoint = isLocal 
         ? (model.toLowerCase().includes('ollama') ? 'http://localhost:11434/api/generate' : 'http://localhost:1234/v1/chat/completions')
         : `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
@@ -40,8 +44,7 @@ export const StreamAiAction = action({
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
-      
-      let lastMutationTime = Date.now();
+      const localChunks = [];
       
       while (true) {
         const { done, value } = await reader.read();
@@ -52,72 +55,66 @@ export const StreamAiAction = action({
         }
 
         const chunk = decoder.decode(value, { stream: true });
+        let extractedContent = "";
         
         const lines = chunk.split('\n').filter(Boolean);
         for (const line of lines) {
             try {
-                let contentToAdd = "";
                 if (isLocal) {
                     if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
                         const parsed = JSON.parse(line.replace('data: ', ''));
-                        contentToAdd = model.toLowerCase().includes('ollama') ? parsed.response : (parsed.choices[0]?.delta?.content || '');
+                        extractedContent += model.toLowerCase().includes('ollama') ? parsed.response : (parsed.choices[0]?.delta?.content || '');
                     } else if (!line.startsWith('data: ')) {
                         const parsed = JSON.parse(line);
-                        contentToAdd = parsed.response || '';
+                        extractedContent += parsed.response || '';
                     }
                 } else {
-                    // Quick regex fallback for Gemini chunking
                     const match = line.match(/"text":\s*"([^"]+)"/);
                     if (match) {
-                        // Simple unescape
-                        contentToAdd = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        extractedContent += match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
                     }
                 }
-
-                if (contentToAdd) {
-                    buffer.push(new TextEncoder().encode(contentToAdd));
-                }
-            } catch (e) {
-                // Ignore partial JSON parse errors
-            }
+            } catch (e) {}
         }
 
-        // Batch mutations every 150ms
-        if (Date.now() - lastMutationTime > 150) {
-            const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
-            const combined = new Uint8Array(totalLength);
-            let offset = 0;
-            for (const b of buffer) {
-                combined.set(b, offset);
-                offset += b.length;
+        if (extractedContent) {
+            localChunks.push(extractedContent);
+            // Buffer to Redis using REST API (Persistent side-channel)
+            if (redisUrl && redisToken) {
+                fetch(`${redisUrl}/append/${redisKey}/${encodeURIComponent(extractedContent)}`, {
+                    headers: { Authorization: `Bearer ${redisToken}` }
+                }).catch(() => {}); // Fire and forget for speed, fallback is localChunks
             }
-            const currentFullContent = new TextDecoder().decode(combined);
-
-            await ctx.runMutation(api.workspace.UpdateStreamingMessage, {
-                workspaceId,
-                messageIndex,
-                content: currentFullContent
-            });
-            lastMutationTime = Date.now();
         }
       }
 
       const duration = Date.now() - startTime;
 
-      const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
-      const combined = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const b of buffer) {
-          combined.set(b, offset);
-          offset += b.length;
-      }
-      const finalFullContent = new TextDecoder().decode(combined);
+      // Final Synthesis: Flush from Redis (or local fallback) and update Convex exactly ONCE
+      let fullContent = "";
+      if (redisUrl && redisToken) {
+          try {
+              const getRes = await fetch(`${redisUrl}/get/${redisKey}`, {
+                  headers: { Authorization: `Bearer ${redisToken}` }
+              });
+              const data = await getRes.json();
+              fullContent = data.result || localChunks.join("");
 
-      // Final persistence with benchmarks
+              // Cleanup
+              await fetch(`${redisUrl}/del/${redisKey}`, {
+                  headers: { Authorization: `Bearer ${redisToken}` }
+              });
+          } catch (e) {
+              fullContent = localChunks.join("");
+          }
+      } else {
+          fullContent = localChunks.join("");
+      }
+
       await ctx.runMutation(api.workspace.UpdateStreamingMessage, {
         workspaceId,
         messageIndex,
-        content: finalFullContent,
+        content: fullContent,
         benchmarks: { ttfb: ttfb || duration, duration }
       });
 

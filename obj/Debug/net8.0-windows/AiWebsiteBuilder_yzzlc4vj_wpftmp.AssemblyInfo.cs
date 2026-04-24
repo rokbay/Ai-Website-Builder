@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AiWebsiteBuilder")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+abb1355d02d3d88d143a4fa6ce632e9be0374299")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+09cc0fb76ac5f72a97cf80ebfbf24c12d31c5167")]
 [assembly: System.Reflection.AssemblyProductAttribute("AiWebsiteBuilder")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AiWebsiteBuilder")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
