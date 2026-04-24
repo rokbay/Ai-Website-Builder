@@ -14,12 +14,24 @@ export async function POST(request) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    let fullText = '';
+                    let buffer = []; // Array of Uint8Arrays
                     for await (const chunk of result.stream) {
                         const chunkText = chunk.text();
-                        fullText += chunkText;
+                        const uint8 = encoder.encode(chunkText);
+                        buffer.push(uint8);
                         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`));
                     }
+
+                    // Combine all chunks for final output
+                    const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
+                    const combined = new Uint8Array(totalLength);
+                    let offset = 0;
+                    for (const b of buffer) {
+                        combined.set(b, offset);
+                        offset += b.length;
+                    }
+                    const fullText = new TextDecoder().decode(combined);
+
                     // Send final complete response
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ enhancedPrompt: fullText.trim(), done: true })}\n\n`));
                     controller.close();
