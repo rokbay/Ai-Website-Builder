@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
-import { Activity, Signal, Cpu, Terminal, ChevronUp, ChevronDown, Database, Trash2, Maximize2, X, Zap } from 'lucide-react';
+import { Activity, Signal, Cpu, Terminal, ChevronUp, ChevronDown, Database, Trash2, Maximize2, X, Zap, Server } from 'lucide-react';
 
 export default function DiagnosticsHUD() {
     const [messages, setMessages] = useState([]);
@@ -13,6 +13,15 @@ export default function DiagnosticsHUD() {
     const [provider, setProvider] = useState('cloud');
     const [payloadSize, setPayloadSize] = useState('0 KB');
     const [payloadColor, setPayloadColor] = useState('text-cyan-400');
+
+    // Redis Metrics
+    const [redisMetrics, setRedisMetrics] = useState({
+        reads: 0,
+        writes: 0,
+        latency: 0,
+        activeStreams: 0
+    });
+
     const scrollRef = useRef(null);
 
     useEffect(() => {
@@ -40,10 +49,15 @@ export default function DiagnosticsHUD() {
             }
         });
 
+        const unsubRedis = notificationSystem.subscribe(EVENTS.REDIS_METRICS, (data) => {
+            setRedisMetrics(data);
+        });
+
         return () => {
             unsubLog();
             unsubLatency();
             unsubPayload();
+            unsubRedis();
         };
     }, []);
 
@@ -105,6 +119,24 @@ export default function DiagnosticsHUD() {
                                 </div>
                             ))
                         )}
+                    </div>
+
+                    {/* Redis Shard Telemetry Panel (Inside Expanded View) */}
+                    <div className="px-5 py-4 border-t border-white/5 bg-blue-500/[0.02] grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <Server className="h-3 w-3 text-blue-400" />
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Redis_Shard</span>
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-[10px] font-mono text-white font-bold">{redisMetrics.reads + redisMetrics.writes} ops</span>
+                                <span className="text-[8px] font-mono text-slate-600">L: {redisMetrics.latency}ms</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-1 items-end">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-right">Active_Streams</span>
+                            <span className="text-[10px] font-mono text-emerald-400 font-bold">{redisMetrics.activeStreams}</span>
+                        </div>
                     </div>
 
                     <div className="px-5 py-3 border-t border-white/5 bg-white/[0.01] flex justify-between items-center">

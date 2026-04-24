@@ -87,19 +87,29 @@ function CodeView({ initialFileData }) {
     }, [STREAMING_FILE]);
 
     useEffect(() => {
-        let buffer = '';
+        let buffer = []; // Array of Uint8Arrays
         const BATCH_INTERVAL_MS = 80;
         const flushBuffer = () => {
             if (buffer.length > 0) {
-                const chunkToApply = buffer;
-                buffer = '';
+                const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
+                const combined = new Uint8Array(totalLength);
+                let offset = 0;
+                for (const b of buffer) {
+                    combined.set(b, offset);
+                    offset += b.length;
+                }
+                const chunkToApply = new TextDecoder().decode(combined);
+                buffer = [];
                 setStreamingContent((prev) => prev + chunkToApply);
                 applyStreamingChunkToFiles(chunkToApply);
             }
         };
         const intervalId = setInterval(flushBuffer, BATCH_INTERVAL_MS);
         const unsubChunk = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (data) => {
-            if (data?.chunk) buffer += data.chunk;
+            if (data?.chunk) {
+                const uint8 = new TextEncoder().encode(data.chunk);
+                buffer.push(uint8);
+            }
         });
         const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, (data) => {
             clearInterval(intervalId);

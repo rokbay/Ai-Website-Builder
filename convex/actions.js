@@ -16,7 +16,7 @@ export const StreamAiAction = action({
     await ctx.runMutation(api.workspace.SetStreamingStatus, { workspaceId, isStreaming: true });
 
     try {
-      let fullContent = "";
+      let buffer = []; // Array of Uint8Arrays
       const isLocal = model.toLowerCase().includes('ollama') || model.toLowerCase().includes('lmstudio');
       
       const apiKey = process.env.GEMINI_API_KEY;
@@ -56,21 +56,26 @@ export const StreamAiAction = action({
         const lines = chunk.split('\n').filter(Boolean);
         for (const line of lines) {
             try {
+                let contentToAdd = "";
                 if (isLocal) {
                     if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
                         const parsed = JSON.parse(line.replace('data: ', ''));
-                        fullContent += model.toLowerCase().includes('ollama') ? parsed.response : (parsed.choices[0]?.delta?.content || '');
+                        contentToAdd = model.toLowerCase().includes('ollama') ? parsed.response : (parsed.choices[0]?.delta?.content || '');
                     } else if (!line.startsWith('data: ')) {
                         const parsed = JSON.parse(line);
-                        fullContent += parsed.response || '';
+                        contentToAdd = parsed.response || '';
                     }
                 } else {
                     // Quick regex fallback for Gemini chunking
                     const match = line.match(/"text":\s*"([^"]+)"/);
                     if (match) {
                         // Simple unescape
-                        fullContent += match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        contentToAdd = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
                     }
+                }
+
+                if (contentToAdd) {
+                    buffer.push(new TextEncoder().encode(contentToAdd));
                 }
             } catch (e) {
                 // Ignore partial JSON parse errors
@@ -79,10 +84,19 @@ export const StreamAiAction = action({
 
         // Batch mutations every 150ms
         if (Date.now() - lastMutationTime > 150) {
+            const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
+            const combined = new Uint8Array(totalLength);
+            let offset = 0;
+            for (const b of buffer) {
+                combined.set(b, offset);
+                offset += b.length;
+            }
+            const currentFullContent = new TextDecoder().decode(combined);
+
             await ctx.runMutation(api.workspace.UpdateStreamingMessage, {
                 workspaceId,
                 messageIndex,
-                content: fullContent
+                content: currentFullContent
             });
             lastMutationTime = Date.now();
         }
@@ -90,11 +104,20 @@ export const StreamAiAction = action({
 
       const duration = Date.now() - startTime;
 
+      const totalLength = buffer.reduce((acc, curr) => acc + curr.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const b of buffer) {
+          combined.set(b, offset);
+          offset += b.length;
+      }
+      const finalFullContent = new TextDecoder().decode(combined);
+
       // Final persistence with benchmarks
       await ctx.runMutation(api.workspace.UpdateStreamingMessage, {
         workspaceId,
         messageIndex,
-        content: fullContent,
+        content: finalFullContent,
         benchmarks: { ttfb: ttfb || duration, duration }
       });
 
