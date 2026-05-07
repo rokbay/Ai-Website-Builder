@@ -18,6 +18,7 @@ function Header() {
         setConnInfo(connChecker.getConnectionInfo());
         const saved = JSON.parse(localStorage.getItem('app_settings') || '{}');
         if (saved.aiModel) setAiModel(saved.aiModel);
+        else setAiModel('gemini-2.0-flash');
 
         const unsub = notificationSystem.subscribe(EVENTS.CONNECTIVITY_SUCCESS, () => {
             setConnInfo(connChecker.getConnectionInfo());
@@ -25,7 +26,7 @@ function Header() {
 
         const interval = setInterval(() => {
             const current = JSON.parse(localStorage.getItem('app_settings') || '{}');
-            if (current.aiModel !== aiModel) setAiModel(current.aiModel || 'UNSET');
+            if (current.aiModel !== aiModel) setAiModel(current.aiModel || 'gemini-2.0-flash');
         }, 3000);
 
         return () => {
