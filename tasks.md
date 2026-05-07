@@ -1,3 +1,17 @@
+# Refactor Tasks: Streaming Bug Fixes & GUI Overhaul
+
+## 🎨 Phase 1: GUI Overhaul (Web1/Web2 Integration)
+- [ ] Implement Framer Motion transitions in `Header.jsx`, `ChatView.jsx`, and `CodeView.jsx`.
+- [ ] Refactor `Header.jsx` to feature seamless glassmorphism and condense the Intelligence Node.
+- [ ] Refactor `ChatView.jsx` messages to use clean Bento-box styling.
+
+## 🐛 Phase 2: Pipeline Bug Fixes
+- [ ] Update `EVENTS.AI_STREAM_CHUNK` payload in `AiProviderManager.js` to separate `delta` and `fullContent`.
+- [ ] Modify `CodeView.jsx` to correctly append only the `delta` to prevent crash-inducing duplication.
+- [ ] Bind `ChatView.jsx` to listen to the `EVENTS.AI_STREAM_CHUNK` stream and update live.
+
+---
+
 # Refactor Tasks: Redis Sharding & High-Performance Synthesis
 
 ## 🏗️ Phase 1: Integration Gap Closure

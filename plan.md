@@ -1,3 +1,17 @@
+# Implementation Plan: Streaming Pipeline Fix & Web1/Web2 GUI Overhaul
+
+## Phase 1: Fix Streaming Pipeline Bugs
+- [ ] Fix `AiProviderManager.js`: Update `EVENTS.AI_STREAM_CHUNK` to broadcast `{ delta: data.chunk, full: fullContent }`.
+- [ ] Fix `CodeView.jsx`: Read the `delta` chunk from the event instead of concatenating the accumulated string, preventing editor crashes.
+- [ ] Fix `ChatView.jsx`: Subscribe to `EVENTS.AI_STREAM_CHUNK` to live-update the streaming output rather than waiting for completion.
+
+## Phase 2: GUI Redesign
+- [ ] Overhaul `Header.jsx`: Implement glassmorphism (web1) with a minimal, dark-mode styling. Move "Intelligence Node" to a cleaner modal or pill.
+- [ ] Overhaul `ChatView.jsx`: Implement Bento-box aesthetics (web2) for chat bubbles, soft rounded borders, and dynamic message entry animations.
+- [ ] Overhaul `CodeView.jsx`: Refine tab selectors to match the seamless design language. Install `framer-motion` if required.
+
+---
+
 # Implementation Plan: Redis Sharding, Builder Pattern & Memory Tuning
 
 ## Phase 1: Core System Hardening
