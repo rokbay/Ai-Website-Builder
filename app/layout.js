@@ -27,7 +27,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="bg-black scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="bg-white scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         <script

@@ -11,7 +11,7 @@ export default function ClientLayout({ children }) {
   return (
     <ConvexClientProvider>
       <Providers>
-        <div className="flex flex-col min-h-screen relative bg-black">
+        <div className="flex flex-col min-h-screen relative bg-white">
           <Header />
           <main className="flex-1 relative">
             {children}
