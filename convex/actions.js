@@ -1,127 +1,122 @@
+// convex/actions.js
 import { v } from 'convex/values';
 import { action } from './_generated/server';
-import { api } from './_generated/api';
+import { internal } from './_generated/api';
 
-export const StreamAiAction = action({
+// =====================================================================
+// 1 & 4. FILE HANDLING & AI CONTEXT GENERATION (RAG Ingestion)
+// Takes massive code/text, chunks it, gets Gemini embeddings, and saves.
+// =====================================================================
+export const ProcessWorkspaceFiles = action({
   args: {
     workspaceId: v.id('workspace'),
-    prompt: v.string(),
-    model: v.string(),
-    messageIndex: v.number(),
+    fileContent: v.string(),
   },
   handler: async (ctx, args) => {
-    const { workspaceId, prompt, model, messageIndex } = args;
-
-    // 1. Initial Status Set
-    await ctx.runMutation(api.workspace.SetStreamingStatus, { workspaceId, isStreaming: true });
-
     try {
-      const isLocal = model.toLowerCase().includes('ollama') || model.toLowerCase().includes('lmstudio');
-      
+      // 1. Heavy Compute: Chunk the file text (e.g., 1000 characters per chunk)
+      const chunks = args.fileContent.match(/.{1,1000}/g) || [];
       const apiKey = process.env.GEMINI_API_KEY;
-      const redisUrl = process.env.NEXT_PUBLIC_UPSTASH_REDIS_REST_URL;
-      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-      const streamId = `${workspaceId}-${messageIndex}`;
-      const redisKey = `stream:${streamId}`;
 
-      const endpoint = isLocal 
-        ? (model.toLowerCase().includes('ollama') ? 'http://localhost:11434/api/generate' : 'http://localhost:1234/v1/chat/completions')
-        : `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
-
-      const startTime = Date.now();
-      let ttfb = null;
-
-      // Perform Fetch (Server-Side)
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isLocal ? { model, prompt, stream: true } : {
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      if (!response.ok) throw new Error(`AI_ACTION_FAILURE: ${response.status}`);
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      const localChunks = [];
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // 2. Fetch Embeddings for each chunk from Gemini (External API call)
+      for (const chunk of chunks) {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'models/text-embedding-004',
+                content: { parts: [{ text: chunk }] }
+            })
+        });
         
-        if (ttfb === null) {
-            ttfb = Date.now() - startTime;
-        }
+        const data = await response.json();
+        const embeddingVector = data.embedding?.values;
 
-        const chunk = decoder.decode(value, { stream: true });
-        let extractedContent = "";
-        
-        const lines = chunk.split('\n').filter(Boolean);
-        for (const line of lines) {
-            try {
-                if (isLocal) {
-                    if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
-                        const parsed = JSON.parse(line.replace('data: ', ''));
-                        extractedContent += model.toLowerCase().includes('ollama') ? parsed.response : (parsed.choices[0]?.delta?.content || '');
-                    } else if (!line.startsWith('data: ')) {
-                        const parsed = JSON.parse(line);
-                        extractedContent += parsed.response || '';
-                    }
-                } else {
-                    const match = line.match(/"text":\s*"([^"]+)"/);
-                    if (match) {
-                        extractedContent += match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-                    }
-                }
-            } catch (e) {}
-        }
-
-        if (extractedContent) {
-            localChunks.push(extractedContent);
-            // Buffer to Redis using REST API (Persistent side-channel)
-            if (redisUrl && redisToken) {
-                fetch(`${redisUrl}/append/${redisKey}/${encodeURIComponent(extractedContent)}`, {
-                    headers: { Authorization: `Bearer ${redisToken}` }
-                }).catch(() => {}); // Fire and forget for speed, fallback is localChunks
-            }
+        // 3. Save to Convex Database via Internal Mutation (convex/ai_context.js file!!!)
+        if (embeddingVector) {
+            await ctx.runMutation(internal.ai_context.saveChunk, {
+                workspaceId: args.workspaceId,
+                text: chunk,
+                embedding: embeddingVector
+            });
         }
       }
-
-      const duration = Date.now() - startTime;
-
-      // Final Synthesis: Flush from Redis (or local fallback) and update Convex exactly ONCE
-      let fullContent = "";
-      if (redisUrl && redisToken) {
-          try {
-              const getRes = await fetch(`${redisUrl}/get/${redisKey}`, {
-                  headers: { Authorization: `Bearer ${redisToken}` }
-              });
-              const data = await getRes.json();
-              fullContent = data.result || localChunks.join("");
-
-              // Cleanup
-              await fetch(`${redisUrl}/del/${redisKey}`, {
-                  headers: { Authorization: `Bearer ${redisToken}` }
-              });
-          } catch (e) {
-              fullContent = localChunks.join("");
-          }
-      } else {
-          fullContent = localChunks.join("");
-      }
-
-      await ctx.runMutation(api.workspace.UpdateStreamingMessage, {
-        workspaceId,
-        messageIndex,
-        content: fullContent,
-        benchmarks: { ttfb: ttfb || duration, duration }
-      });
-
+      return { success: true, chunksProcessed: chunks.length };
     } catch (error) {
-      console.error("CONVEX_ACTION_ERROR:", error);
-    } finally {
-      await ctx.runMutation(api.workspace.SetStreamingStatus, { workspaceId, isStreaming: false });
+        console.error("Context Chunking Failed:", error);
+        return { success: false, error: error.message };
     }
   },
+});
+
+// =====================================================================
+// 4. AI CONTEXT RETRIEVAL (Vector Search)
+// Call this from your Next.js route before generating code to give the AI context.
+// =====================================================================
+export const SearchWorkspaceContext = action({
+  args: {
+    workspaceId: v.id('workspace'),
+    userQuery: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // 1. Get embedding for the user's question
+    const apiKey = process.env.GEMINI_API_KEY;
+    const embedRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: 'models/text-embedding-004',
+            content: { parts: [{ text: args.userQuery }] }
+        })
+    });
+    
+    const embedData = await embedRes.json();
+    const queryVector = embedData.embedding?.values;
+
+    if (!queryVector) return [];
+
+    // 2. Perform Native Convex Vector Search
+    const results = await ctx.vectorSearch("documentChunks", "by_embedding", {
+        vector: queryVector,
+        limit: 5,
+        filter: (q) => q.eq("workspaceId", args.workspaceId), // Only search this workspace
+    });
+
+    // 3. Fetch the actual text from the search results
+    const relevantChunks = await Promise.all(
+        results.map(async (result) => {
+            const doc = await ctx.runQuery(internal.ai_context.getChunkById, { id: result._id });
+            return doc.text;
+        })
+    );
+
+    return relevantChunks; // Feed this string array directly into your Gemini Prompt!
+  }
+});
+
+// =====================================================================
+// 3. STREAM & NODE HEALTH CHECKS
+// Safe external API pinging without freezing the client UI
+// =====================================================================
+export const CheckExternalNodeHealth = action({
+    args: {
+        nodeUrl: v.string(), // e.g., 'http://127.0.0.1:1234/v1/models' (LM Studio)
+    },
+    handler: async (ctx, args) => {
+        try {
+            // Using AbortController to enforce a strict 2-second timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+            const response = await fetch(args.nodeUrl, { 
+                method: 'GET',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            return { isOnline: response.ok, status: response.status };
+        } catch (error) {
+            return { isOnline: false, error: 'Node Unreachable' };
+        }
+    }
 });

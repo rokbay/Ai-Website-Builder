@@ -2,7 +2,7 @@
 
 import { MessagesContext } from "@/context/MessagesContext";
 import Header from "@/components/custom/Header";
-import DiagnosticsHUD from "@/components/custom/DiagnosticsHUD";
+import { DiagnosticsHUD } from './DiagnosticsHUD';
 import SettingsModal from "@/components/custom/SettingsModal";
 import Providers from "@/app/provider";
 import ConvexClientProvider from "@/app/ConvexClientProvider";

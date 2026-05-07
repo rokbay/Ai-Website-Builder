@@ -1,6 +1,46 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { mutation, query, internalMutation } from './_generated/server';
+import { api, internal } from './_generated/api';
 
+
+export const StartAiGeneration = mutation({
+    args: {
+        workspaceId: v.id('workspace'),
+        prompt: v.string(),
+        model: v.string(),
+        messageIndex: v.number()
+    },
+    handler: async (ctx, args) => {
+        // Lock the UI immediately
+        await ctx.db.patch(args.workspaceId, { isStreaming: true });
+        
+        // Asynchronously schedule the background worker. 
+        // This instantly frees the React network stack.
+        await ctx.scheduler.runAfter(0, api.actions.StreamAiAction, args);
+    }
+});
+
+// 2. The Throttled Chunk Writer (Internal = Only accessible by Convex servers)
+export const UpdateChunk = internalMutation({
+    args: {
+        workspaceId: v.id('workspace'),
+        messageIndex: v.number(),
+        content: v.string()
+    },
+    handler: async (ctx, args) => {
+        const workspace = await ctx.db.get(args.workspaceId);
+        if (!workspace) return;
+        
+        const newMessages = [...workspace.messages];
+        if (newMessages[args.messageIndex]) {
+            newMessages[args.messageIndex].content = args.content;
+            await ctx.db.patch(args.workspaceId, { 
+                messages: newMessages,
+                lastUpdated: Date.now() 
+            });
+        }
+    }
+});
 export const CreateWorkspace = mutation({
     args:{
         messages:v.any(),

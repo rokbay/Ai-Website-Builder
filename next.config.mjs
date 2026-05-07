@@ -4,13 +4,8 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
-  experimental: {
-    optimizePackageImports: [
-      "@codesandbox/sandpack-react",
-      "lucide-react",
-      "react-markdown",
-    ],
-  },
+  // EXPERIMENTAL PACKAGE OPTIMIZATION REMOVED:
+  // This was causing 5-minute initial compilation hangs with Sandpack.
 };
 
 export default nextConfig;

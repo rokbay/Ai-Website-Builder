@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as actions from "../actions.js";
+import type * as ai_context from "../ai_context.js";
 import type * as workspace from "../workspace.js";
 
 /**
@@ -26,6 +27,7 @@ import type * as workspace from "../workspace.js";
  */
 declare const fullApi: ApiFromModules<{
   actions: typeof actions;
+  ai_context: typeof ai_context;
   workspace: typeof workspace;
 }>;
 export declare const api: FilterApi<

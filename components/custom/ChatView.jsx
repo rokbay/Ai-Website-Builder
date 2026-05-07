@@ -49,7 +49,7 @@ function ChatView() {
     const { id } = useParams();
     const { messages, setMessages } = useContext(MessagesContext);
     const setMessagesMutation = useMutation(api.workspace.UpdateWorkspace);
-    const streamAction = useAction(api.actions.StreamAiAction);
+    const triggerAiMutation = useMutation(api.workspace.StartAiGeneration); 
     const [userInput, setUserInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [streamingContent, setStreamingContent] = useState('');
@@ -62,10 +62,10 @@ function ChatView() {
         try {
             setLoading(true);
             
-            const result = await aiProviderManager.getResponse({
+          const result = await aiProviderManager.getResponse({
                 messages: nextMessages,
                 workspaceId: id,
-                streamAction: streamAction,
+                streamAction: triggerAiMutation, // <-- Pass the new Mutation!
                 updateMessages: UpdateMessages
             });
 
@@ -82,7 +82,7 @@ function ChatView() {
         } finally {
             setLoading(false);
         }
-    }, [messages, id, UpdateMessages, setMessages, streamAction]);
+    }, [messages, id, UpdateMessages, setMessages, triggerAiMutation]);
 
     useEffect(() => {
         if (messages?.length > 0) {

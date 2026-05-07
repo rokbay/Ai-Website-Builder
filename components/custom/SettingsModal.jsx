@@ -33,7 +33,7 @@ export default function SettingsModal() {
         const updated = { ...settings, ...newSettings };
         setSettingsState(updated);
         localStorage.setItem('app_settings', JSON.stringify(updated));
-        notificationSystem.notify(EVENTS.STATUS_UPDATE, { message: 'Preferences updated locally', severity: 'info' });
+       notificationSystem.publish(EVENTS.STATUS_UPDATE, { message: 'Preferences updated locally', severity: 'info' });
     };
 
     const handleSaveApiKey = async () => {
@@ -44,7 +44,7 @@ export default function SettingsModal() {
             if (typeof window !== 'undefined' && window.webMessageBridge?.request) {
                 const result = await window.webMessageBridge.request('saveGeminiApiKey', { apiKey });
                 if (result.status === 'success') {
-                    notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+                    notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                         message: 'API Key persisted to .env.local via .NET Bridge',
                         severity: 'success'
                     });
@@ -53,13 +53,13 @@ export default function SettingsModal() {
                     throw new Error(result.message);
                 }
             } else {
-                notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+                notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                     message: 'Manual Action Required: Update .env.local with your key',
                     severity: 'warning'
                 });
             }
         } catch (error) {
-            notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+            notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                 message: `Failed to save API key: ${error.message}`,
                 severity: 'error'
             });

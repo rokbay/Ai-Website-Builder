@@ -86,9 +86,11 @@ namespace AiWebsiteBuilder.Views
         }
 
         private async Task InitializeWebView()
-        {
+        {  var options = new CoreWebView2EnvironmentOptions("--allow-insecure-localhost --disable-web-security");
+
             try
-            {
+            {                                                              
+                                                     
                 // Initialize WebView2 with localhost support
                 var userDataFolder = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -744,3 +746,4 @@ namespace AiWebsiteBuilder.Views
         }
     }
 }
+       
