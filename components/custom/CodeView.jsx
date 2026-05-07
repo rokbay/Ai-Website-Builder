@@ -32,27 +32,27 @@ function CodeView({ initialFileData }) {
     // Pro IDE Theme Definition for High Readability
     const proTheme = useMemo(() => ({
         colors: {
-            surface1: "#000000",
-            surface2: "#0a0a0a",
-            surface3: "#1a1a1a",
-            clickable: "#808080",
-            base: "#e5e7eb",
-            disabled: "#4d4d4d",
-            hover: "#ffffff",
-            accent: "#3b82f6",
+            surface1: "#ffffff",
+            surface2: "#fafaf9",
+            surface3: "#f5f5f4",
+            clickable: "#78716c",
+            base: "#1c1917",
+            disabled: "#a8a29e",
+            hover: "#1c1917",
+            accent: "#2563eb",
             error: "#ef4444",
-            errorSurface: "#2d1616",
+            errorSurface: "#fee2e2",
         },
         syntax: {
-            plain: "#e5e7eb",
-            comment: { color: "#6b7280", fontStyle: "italic" },
-            keyword: "#93c5fd",
-            tag: "#60a5fa",
-            punctuation: "#94a3b8",
-            definition: "#bfdbfe",
-            property: "#60a5fa",
-            static: "#c084fc",
-            string: "#34d399",
+            plain: "#1c1917",
+            comment: { color: "#a8a29e", fontStyle: "italic" },
+            keyword: "#2563eb",
+            tag: "#0891b2",
+            punctuation: "#78716c",
+            definition: "#1c1917",
+            property: "#2563eb",
+            static: "#db2777",
+            string: "#16a34a",
         },
         font: {
             body: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
@@ -106,8 +106,8 @@ function CodeView({ initialFileData }) {
         };
         const intervalId = setInterval(flushBuffer, BATCH_INTERVAL_MS);
         const unsubChunk = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (data) => {
-            if (data?.chunk) {
-                const uint8 = new TextEncoder().encode(data.chunk);
+            if (data?.delta) {
+                const uint8 = new TextEncoder().encode(data.delta);
                 buffer.push(uint8);
             }
         });
@@ -150,50 +150,50 @@ function CodeView({ initialFileData }) {
     }, [files]);
 
     return (
-        <div className='relative h-full flex flex-col bg-black overflow-hidden font-sans antialiased'>
+        <div className='relative h-full flex flex-col bg-white overflow-hidden font-sans antialiased'>
             {/* Elite Web2 Header */}
-            <div className='bg-black px-8 py-5 border-b border-white/5 flex items-center justify-between'>
+            <div className='bg-white px-8 py-4 border-b border-stone-200 flex items-center justify-between shadow-sm z-10'>
                 <div className="flex items-center gap-6">
-                    <div className='flex items-center gap-1.5 bg-white/[0.03] p-1.5 rounded-2xl border border-white/5'>
+                    <div className='flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200'>
                         {[
-                            { id: 'code', label: 'Architecture', icon: Code2 },
-                            { id: 'preview', label: 'Deployment', icon: Zap },
-                            { id: 'structure', label: 'Structure', icon: Layers }
+                            { id: 'code', label: 'Code', icon: Code2 },
+                            { id: 'preview', label: 'Preview', icon: Zap },
+                            { id: 'structure', label: 'Tree', icon: Layers }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-[0.2em] ${
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black transition-all uppercase tracking-widest ${
                                     activeTab === tab.id
-                                        ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
-                                        : 'text-slate-500 hover:text-slate-200'
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-stone-400 hover:text-stone-600'
                                 }`}
                             >
-                                <tab.icon className="h-4 w-4" />
+                                <tab.icon className="h-3.5 w-3.5" />
                                 {tab.label}
                             </button>
                         ))}
                     </div>
-                    <div className="h-4 w-px bg-white/5" />
-                    <div className="flex items-center gap-3 text-slate-500">
-                        <Layers className="h-4 w-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.1em]">Files: {Object.keys(files).length}</span>
+                    <div className="h-4 w-px bg-stone-200" />
+                    <div className="flex items-center gap-2 text-stone-400">
+                        <Layers className="h-3.5 w-3.5" />
+                        <span className="text-[9px] font-black uppercase tracking-widest">{Object.keys(files).length} Files</span>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                     {loading && (
-                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 mr-2">
-                            <div className="h-2 w-2 rounded-full bg-blue-400 animate-ping" />
-                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Synthesizing...</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 mr-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Compiling</span>
                         </div>
                     )}
                     <button
                         onClick={downloadFiles}
-                        className="flex items-center gap-3 glass-button-primary py-2.5 px-6 border-blue-500/20"
+                        className="flex items-center gap-2 glass-button-primary py-2 px-4 text-[9px]"
                     >
-                        <Download className="h-4 w-4" />
-                        Production_Export
+                        <Download className="h-3.5 w-3.5" />
+                        Export
                     </button>
                 </div>
             </div>
