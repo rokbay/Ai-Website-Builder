@@ -116,7 +116,11 @@ function CodeView({ initialFileData }) {
             flushBuffer();
             if (data?.final) {
                 setStreamingContent(data.final);
-                setFiles((prev) => ({ ...prev, [STREAMING_FILE]: { code: data.final } }));
+                setFiles((prev) => {
+                    const newFiles = { ...prev, [STREAMING_FILE]: { code: data.final } };
+                    UpdateFiles({ workspaceId: id, files: newFiles });
+                    return newFiles;
+                });
             }
             setLoading(false);
         });

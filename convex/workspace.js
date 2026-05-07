@@ -86,13 +86,18 @@ export const UpdateWorkspace = mutation({
         workspaceId:v.id('workspace'),
         messages:v.any(),
         projectName:v.optional(v.string()),
+        description:v.optional(v.string()),
     },
     handler:async(ctx,args)=>{
-        const result=await ctx.db.patch(args.workspaceId,{
+        const patchData = {
             messages:args.messages,
             projectName:args.projectName,
             lastUpdated: Date.now()
-        });
+        };
+        if (args.description !== undefined) {
+            patchData.description = args.description;
+        }
+        const result=await ctx.db.patch(args.workspaceId, patchData);
         return result;
     }
 })

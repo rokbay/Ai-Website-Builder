@@ -56,12 +56,14 @@ function ChatView() {
     const [streamingContent, setStreamingContent] = useState('');
     const [abortController, setAbortController] = useState(null);
     const UpdateMessages = useMutation(api.workspace.UpdateWorkspace);
+    const setStreamingStatus = useMutation(api.workspace.SetStreamingStatus);
 
     const GetAiResponse = useCallback(async () => {
         const nextMessages = [...messages];
         
         try {
             setLoading(true);
+            await setStreamingStatus({ workspaceId: id, isStreaming: true });
             
           const result = await aiProviderManager.getResponse({
                 messages: nextMessages,
@@ -82,8 +84,9 @@ function ChatView() {
             });
         } finally {
             setLoading(false);
+            await setStreamingStatus({ workspaceId: id, isStreaming: false });
         }
-    }, [messages, id, UpdateMessages, setMessages, triggerAiMutation]);
+    }, [messages, id, UpdateMessages, setMessages, triggerAiMutation, setStreamingStatus]);
 
     useEffect(() => {
         if (messages?.length > 0) {
