@@ -68,41 +68,21 @@ const Workspace = () => {
     }, [id, convex, setMessages]);
 
     return (
-        <div className="h-screen bg-[#020617] relative overflow-hidden flex flex-col font-sans">
+        <div className="h-screen bg-stone-50 relative overflow-hidden flex flex-col font-sans">
             {/* Ambient Background Elements */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-blue-600/10 via-transparent to-transparent blur-3xl pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px),linear-gradient(to_bottom,#e5e5e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-50" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-blue-100/50 via-transparent to-transparent blur-3xl pointer-events-none" />
 
             <div className='relative z-10 flex-1 overflow-hidden flex flex-col'>
                 <div className='flex flex-1 overflow-hidden'>
                     {/* Chat Sidebar */}
-                    <aside className="w-full md:w-[380px] lg:w-[420px] flex-shrink-0 border-r border-white/5 bg-[#020617]/80 backdrop-blur-xl flex flex-col shadow-[20px_0_50px_rgba(0,0,0,0.5)]">
+                    <aside className="w-full md:w-[380px] lg:w-[420px] flex-shrink-0 border-r border-stone-200 bg-white/80 backdrop-blur-xl flex flex-col shadow-sm z-20">
                         <ChatView />
                     </aside>
 
                     {/* Main Code/Preview Area */}
-                    <main className='flex-1 overflow-hidden bg-black/40 flex flex-col relative'>
+                    <main className='flex-1 overflow-hidden bg-transparent flex flex-col relative'>
                         <CodeView initialFileData={initialFileData} />
-
-                        {/* Status bar integration for web */}
-                        <footer className="absolute bottom-0 left-0 right-0 h-8 border-t border-white/5 bg-black/60 backdrop-blur-md flex items-center justify-between px-4 z-50">
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" />
-                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Environment Ready</span>
-                                </div>
-                                <div className="h-3 w-px bg-white/10" />
-                                <span className="text-[9px] font-bold text-gray-600 uppercase tracking-tighter">Latency: 24ms</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">v1.0.4-hybrid</span>
-                                <div className="flex gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-white/20" />
-                                    <div className="w-1 h-1 rounded-full bg-white/20" />
-                                    <div className="w-1 h-1 rounded-full bg-white/20" />
-                                </div>
-                            </div>
-                        </footer>
                     </main>
                 </div>
             </div>

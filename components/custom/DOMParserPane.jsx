@@ -60,25 +60,25 @@ const TreeNode = ({ node, level = 0 }) => {
   return (
     <div className="font-mono text-xs">
       <div 
-        className={`flex items-center py-1.5 px-2 hover:bg-white/5 cursor-pointer select-none rounded`}
+        className={`flex items-center py-1.5 px-2 hover:bg-stone-100 cursor-pointer select-none rounded`}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         onClick={() => hasChildren && setIsExpanded(!isExpanded)}
       >
         <div className="w-4 h-4 flex items-center justify-center mr-1">
           {hasChildren ? (
-             isExpanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />
+             isExpanded ? <ChevronDown className="w-3 h-3 text-stone-400" /> : <ChevronRight className="w-3 h-3 text-stone-400" />
           ) : (
             <span className="w-3 h-3" />
           )}
         </div>
         
         {node.isComponent ? (
-            <LayoutTemplate className="w-3 h-3 text-purple-400 mr-2" />
+            <LayoutTemplate className="w-3 h-3 text-purple-500 mr-2" />
         ) : (
-            <Box className="w-3 h-3 text-blue-400 mr-2" />
+            <Box className="w-3 h-3 text-blue-500 mr-2" />
         )}
 
-        <span className={`${node.isComponent ? 'text-purple-300' : 'text-blue-300'} font-black`}>
+        <span className={`${node.isComponent ? 'text-purple-600' : 'text-blue-600'} font-black`}>
           {node.tag}
         </span>
 
@@ -104,13 +104,13 @@ export default function DOMParserPane({ code }) {
     const tree = useMemo(() => parseJSX(code || ''), [code]);
 
     return (
-        <div className="h-full flex flex-col bg-[#0a0a0a]">
-            <div className="px-4 py-3 border-b border-white/5 bg-black/50 flex items-center justify-between">
+        <div className="h-full flex flex-col bg-white">
+            <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/80 backdrop-blur-sm flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <LayoutTemplate className="w-4 h-4 text-slate-400" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">DOM & CSSOM Structure</span>
+                    <LayoutTemplate className="w-4 h-4 text-stone-500" />
+                    <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">DOM & CSSOM Structure</span>
                 </div>
-                <div className="px-2 py-1 bg-blue-500/10 rounded text-[9px] font-black text-blue-400 uppercase border border-blue-500/20">
+                <div className="px-2 py-1 bg-blue-50 text-[9px] font-black text-blue-600 uppercase border border-blue-100 rounded">
                     Live AST Sync
                 </div>
             </div>
@@ -118,9 +118,9 @@ export default function DOMParserPane({ code }) {
                 {tree.length > 0 ? (
                     tree.map(node => <TreeNode key={node.id} node={node} />)
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-500 p-8 text-center gap-4">
-                        <Type className="w-8 h-8 opacity-20" />
-                        <span className="text-xs uppercase tracking-widest font-black">Awaiting Structural Data...</span>
+                    <div className="flex flex-col items-center justify-center h-full text-stone-400 p-8 text-center gap-4">
+                        <Type className="w-8 h-8 opacity-20 text-stone-400" />
+                        <span className="text-xs uppercase tracking-widest font-black text-stone-400">Awaiting Structural Data...</span>
                     </div>
                 )}
             </div>
