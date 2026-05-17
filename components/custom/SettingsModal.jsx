@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, X, Cpu, Key, Save, AlertCircle, CheckCircle, Loader2, Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Settings, X, Cpu, Key, Save, AlertCircle, Loader2 } from 'lucide-react';
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
 
 export default function SettingsModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [apiKey, setApiKey] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-    const { theme, setTheme } = useTheme();
 
     const [settings, setSettingsState] = useState({
         aiModel: 'gemini-2.0-flash',
@@ -149,33 +147,6 @@ export default function SettingsModal() {
                             </div>
                         </section>
 
-                        {/* APPEARANCE */}
-                        <section className="space-y-4 pb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Monitor className="h-4 w-4 text-stone-400" />
-                                <h3 className="text-[10px] font-black text-stone-800 uppercase tracking-[0.2em]">Interface</h3>
-                            </div>
-                            <div className="flex gap-2 p-1 bg-stone-100 rounded-2xl border border-stone-200">
-                                {[
-                                    { id: 'light', icon: Sun, label: 'Light' },
-                                    { id: 'dark', icon: Moon, label: 'Dark' },
-                                    { id: 'system', icon: Monitor, label: 'System' }
-                                ].map((t) => (
-                                    <button
-                                        key={t.id}
-                                        onClick={() => setTheme(t.id)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                            theme === t.id
-                                                ? 'bg-white text-blue-600 shadow-sm'
-                                                : 'text-stone-400 hover:text-stone-600'
-                                        }`}
-                                    >
-                                        <t.icon className="h-3.5 w-3.5" />
-                                        {t.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </section>
                     </div>
 
                     {/* Footer */}

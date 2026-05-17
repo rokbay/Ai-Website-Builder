@@ -120,6 +120,7 @@ Vercel enforces a strict 10–15s execution timeout for standard serverless func
 
 ## Documentation
 
+- [Full Engineering Report (PDF)](docs/Bolt_Engine_Full_Engineering_Report.pdf)
 - [System Architecture](docs/ARCHITECTURE.md)
 - [Performance Engineering](docs/PERFORMANCE.md)
 - [Connectivity System](docs/CONNECTIVITY.md)
@@ -130,7 +131,6 @@ Vercel enforces a strict 10–15s execution timeout for standard serverless func
 
 ## Live Demo
 
-*The demo showcases the 60fps streaming pipeline and the instantaneous L1 state synchronization.*
+*The demo showcases the 60fps streaming pipeline and the instantaneous L1 state synchronization using the local LLM runtime.*
 
-![Bolt Engine Live Demo](demo/demo.gif)
-*(Placeholder: Insert architecture/streaming demonstration GIF here)*
+![Bolt Engine Live Demo](demo/bolt_engine_demo.webp)
