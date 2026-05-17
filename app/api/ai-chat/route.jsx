@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { PROMPTS} from '@/lib/ai/prompts';
+
 // CRUCIAL: Forces Vercel/Next.js to run this on the Edge, preventing 10s timeouts on long streams
 export const runtime = 'edge';
 
@@ -27,7 +29,13 @@ export async function POST(req) {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents })
+            body: JSON.stringify({ 
+                contents,
+                systemInstruction: {
+                    role: "system",
+                    parts: [{ text: PROMPTS.CODE_GEN.system }]
+                }
+            })
         });
 
         if (!response.ok) {

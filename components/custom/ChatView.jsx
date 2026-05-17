@@ -4,7 +4,7 @@ import { useConvex, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { useContext, useEffect, useState, useCallback, memo } from 'react';
-import { Loader2Icon, Send, Terminal, Cpu, Zap } from "lucide-react";
+import { Loader2Icon, Send, Terminal, Cpu, Zap, Square } from "lucide-react";
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
 import { aiProviderManager } from '@/lib/AiProviderManager';
 import ReactMarkdown from 'react-markdown';
@@ -98,15 +98,27 @@ function ChatView() {
     }, [messages, GetAiResponse]);
 
     useEffect(() => {
-        const unsub = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (data) => {
+        // NotificationSystem wraps payloads as { type, data, timestamp }
+        // So callbacks receive the full event object — we must unwrap .data
+        const unsub = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (event) => {
+            const data = event?.data ?? event;
             if (data?.full) {
-                setStreamingContent(data.full);
+                // Slice at first JSON object OR first markdown code fence
+                const jsonIdx  = data.full.indexOf('{');
+                const fenceIdx = data.full.indexOf('```');
+                const candidates = [jsonIdx, fenceIdx].filter(i => i !== -1);
+                const cutIdx = candidates.length ? Math.min(...candidates) : -1;
+                const chatText = cutIdx === -1 ? data.full : data.full.slice(0, cutIdx).trimEnd();
+                setStreamingContent(chatText);
                 setLoading(false);
             }
         });
 
-        const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, () => {
-            setStreamingContent('');
+        const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, (event) => {
+            const data = event?.data ?? event;
+            // Delay clear so the final persisted message has time to render
+            // before the live streaming bubble disappears
+            setTimeout(() => setStreamingContent(''), 200);
         });
 
         return () => {
@@ -122,6 +134,13 @@ function ChatView() {
         }]);
         setUserInput('');
     }, [setMessages]);
+
+    const onStop = useCallback(async () => {
+        aiProviderManager.stopGeneration();
+        setLoading(false);
+        setStreamingContent('');
+        await setStreamingStatus({ workspaceId: id, isStreaming: false });
+    }, [id, setStreamingStatus]);
 
     return (
         <div className="relative h-full flex flex-col bg-stone-50 overflow-hidden">
@@ -192,6 +211,15 @@ function ChatView() {
                         >
                             {loading ? <Loader2Icon className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                         </button>
+                        {loading && (
+                            <button
+                                onClick={onStop}
+                                aria-label="Stop generation"
+                                className="flex-shrink-0 ml-2 p-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white transition-all duration-300"
+                            >
+                                <Square className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center justify-between mt-4">
