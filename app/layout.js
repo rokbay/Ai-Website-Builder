@@ -9,8 +9,6 @@ export const metadata = {
   description: "High-performance, local-first neural project synthesizer. Accelerated synthesis via .NET bridge and Convex real-time sync.",
   keywords: ["AI Website Builder", "Spec-Driven Development", "Local AI", "Ollama", "Convex", "Next.js"],
   manifest: "/manifest.json",
-  themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "Bolt Engine // Elite Spec-Driven IDE",
@@ -20,9 +18,16 @@ export const metadata = {
   }
 };
 
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="bg-black scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="bg-white scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         <script

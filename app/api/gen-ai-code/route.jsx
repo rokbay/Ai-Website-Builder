@@ -10,26 +10,26 @@ export async function POST(req) {
     const streamId = uuidv4();
 
     try {
-        // Build the extreme system prompt
         const fullPrompt = ExtremePrompts.CODE_GEN_BASE(prompt);
-
         const providerInfo = await AIProviderFactory.getStream(fullPrompt, config);
         
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
+                let fullText = ""; // Accumulate text in memory temporarily for testing
+                
                 try {
                     const it = providerInfo.iterator();
                     
                     for await (const chunk of it) {
-                        // The Buffer Rule: Append to Redis
-                        await redisManager.appendToBuffer(streamId, chunk);
+                        fullText += chunk; // In-memory fallback
+                        
+                        // TEMPORARILY DISABLED REDIS TO TEST STREAM FLOW
+                        // await redisManager.appendToBuffer(streamId, chunk); 
+                        
                         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
                     }
                     
-                    // Final Synthesis: Flush from Redis
-                    const fullText = await redisManager.flushBuffer(streamId);
-
                     // The Thread Rule: Offload metrics
                     payloadProcessor.processMetrics(fullText).catch(console.error);
 
@@ -69,4 +69,26 @@ export async function POST(req) {
             headers: { 'Content-Type': 'application/json' },
         });
     }
+}
+
+// ----------------------------------------------------------------------
+// WPF DESKTOP LAUNCHER FIX: Connectivity Check Handlers
+// ----------------------------------------------------------------------
+
+export async function GET(request) {
+    return new Response(JSON.stringify({ status: "online", message: "API is reachable" }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+    });
+}
+
+export async function OPTIONS(request) {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+    });
 }

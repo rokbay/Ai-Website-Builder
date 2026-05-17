@@ -20,6 +20,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.18.2",
     "dedent": "^1.5.3",
+    "framer-motion": "^12.38.0",
     "jszip": "^3.10.1",
     "jzip": "^1.0.0",
     "lucide-react": "^0.471.2",

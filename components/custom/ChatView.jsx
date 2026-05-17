@@ -4,20 +4,24 @@ import { useConvex, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { useContext, useEffect, useState, useCallback, memo } from 'react';
-import { Loader2Icon, Send, Terminal, Cpu, Zap } from "lucide-react";
+import { Loader2Icon, Send, Terminal, Cpu, Zap, Square } from "lucide-react";
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
 import { aiProviderManager } from '@/lib/AiProviderManager';
 import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
 
 const MessageItem = memo(({ msg, index }) => (
-    <div
-        className={`group relative flex gap-4 p-8 transition-all duration-300 ${
+    <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className={`group relative flex gap-4 p-6 m-4 rounded-[24px] border border-white/5 transition-all duration-300 ${
             msg.role === 'user' 
-                ? 'bg-black/40 border-b border-white/5'
-                : 'bg-white/[0.02] border-b border-white/5'
+                ? 'bg-white/[0.03] shadow-[0_8px_32px_rgba(37,99,235,0.05)]'
+                : 'bg-white/[0.01] shadow-[0_8px_32px_rgba(255,255,255,0.02)]'
         }`}
     >
-        <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-[10px] font-black shadow-2xl transition-transform group-hover:scale-105 ${
+        <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black shadow-2xl transition-transform group-hover:scale-105 ${
             msg.role === 'user'
                 ? 'bg-blue-600/10 border border-blue-500/30 text-blue-400'
                 : 'bg-gradient-to-br from-slate-900 to-black border border-white/10 text-white'
@@ -25,14 +29,11 @@ const MessageItem = memo(({ msg, index }) => (
             {msg.role === 'user' ? 'USR' : 'SYS'}
         </div>
         <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-3">
-                <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${
+            <div className="flex items-center justify-between mb-2">
+                <span className={`text-xs font-semibold uppercase ${
                     msg.role === 'user' ? 'text-blue-500' : 'text-slate-500'
                 }`}>
-                    {msg.role === 'user' ? 'USER_STREAM' : 'NEURAL_SYNTHESIS'}
-                </span>
-                <span className="text-[9px] font-mono text-slate-800 group-hover:text-slate-600 transition-colors">
-                    SEQ_00{index + 1}
+                    {msg.role === 'user' ? 'User' : 'System'}
                 </span>
             </div>
             <div className="text-sm text-slate-300 leading-[1.8] prose prose-invert prose-sm max-w-none break-words
@@ -40,7 +41,7 @@ const MessageItem = memo(({ msg, index }) => (
                 <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
         </div>
-    </div>
+    </motion.div>
 ));
 
 MessageItem.displayName = 'MessageItem';
@@ -49,23 +50,25 @@ function ChatView() {
     const { id } = useParams();
     const { messages, setMessages } = useContext(MessagesContext);
     const setMessagesMutation = useMutation(api.workspace.UpdateWorkspace);
-    const streamAction = useAction(api.actions.StreamAiAction);
+    const triggerAiMutation = useMutation(api.workspace.StartAiGeneration); 
     const [userInput, setUserInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [streamingContent, setStreamingContent] = useState('');
     const [abortController, setAbortController] = useState(null);
     const UpdateMessages = useMutation(api.workspace.UpdateWorkspace);
+    const setStreamingStatus = useMutation(api.workspace.SetStreamingStatus);
 
     const GetAiResponse = useCallback(async () => {
         const nextMessages = [...messages];
         
         try {
             setLoading(true);
+            await setStreamingStatus({ workspaceId: id, isStreaming: true });
             
-            const result = await aiProviderManager.getResponse({
+          const result = await aiProviderManager.getResponse({
                 messages: nextMessages,
                 workspaceId: id,
-                streamAction: streamAction,
+                streamAction: triggerAiMutation, // <-- Pass the new Mutation!
                 updateMessages: UpdateMessages
             });
 
@@ -81,8 +84,9 @@ function ChatView() {
             });
         } finally {
             setLoading(false);
+            await setStreamingStatus({ workspaceId: id, isStreaming: false });
         }
-    }, [messages, id, UpdateMessages, setMessages, streamAction]);
+    }, [messages, id, UpdateMessages, setMessages, triggerAiMutation, setStreamingStatus]);
 
     useEffect(() => {
         if (messages?.length > 0) {
@@ -93,6 +97,36 @@ function ChatView() {
         }
     }, [messages, GetAiResponse]);
 
+    useEffect(() => {
+        // NotificationSystem wraps payloads as { type, data, timestamp }
+        // So callbacks receive the full event object — we must unwrap .data
+        const unsub = notificationSystem.subscribe(EVENTS.AI_STREAM_CHUNK, (event) => {
+            const data = event?.data ?? event;
+            if (data?.full) {
+                // Slice at first JSON object OR first markdown code fence
+                const jsonIdx  = data.full.indexOf('{');
+                const fenceIdx = data.full.indexOf('```');
+                const candidates = [jsonIdx, fenceIdx].filter(i => i !== -1);
+                const cutIdx = candidates.length ? Math.min(...candidates) : -1;
+                const chatText = cutIdx === -1 ? data.full : data.full.slice(0, cutIdx).trimEnd();
+                setStreamingContent(chatText);
+                setLoading(false);
+            }
+        });
+
+        const unsubComplete = notificationSystem.subscribe(EVENTS.AI_STREAM_COMPLETE, (event) => {
+            const data = event?.data ?? event;
+            // Delay clear so the final persisted message has time to render
+            // before the live streaming bubble disappears
+            setTimeout(() => setStreamingContent(''), 200);
+        });
+
+        return () => {
+            unsub();
+            unsubComplete();
+        };
+    }, []);
+
     const onGenerate = useCallback((input) => {
         setMessages(prev => [...prev, {
             role: 'user',
@@ -101,27 +135,34 @@ function ChatView() {
         setUserInput('');
     }, [setMessages]);
 
+    const onStop = useCallback(async () => {
+        aiProviderManager.stopGeneration();
+        setLoading(false);
+        setStreamingContent('');
+        await setStreamingStatus({ workspaceId: id, isStreaming: false });
+    }, [id, setStreamingStatus]);
+
     return (
-        <div className="relative h-full flex flex-col bg-black overflow-hidden">
+        <div className="relative h-full flex flex-col bg-stone-50 overflow-hidden">
             {/* Pro Workspace Header */}
-            <div className="px-8 py-6 border-b border-white/5 bg-black flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-blue-600/10 border border-blue-500/20 rounded-xl">
-                        <Terminal className="h-4 w-4 text-blue-500" />
+            <div className="px-8 py-4 border-b border-stone-200 bg-white flex items-center justify-between shadow-sm z-10">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 border border-blue-100 rounded-xl">
+                        <Terminal className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
-                        <span className="block text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] leading-none mb-1">Neural Interface</span>
-                        <span className="block text-[11px] font-black text-white uppercase tracking-tighter">Workspace_Session_Live</span>
+                        <span className="block text-xs font-bold text-blue-600 uppercase mb-1">Bolt Engine</span>
+                        <span className="block text-xs font-semibold text-stone-800 uppercase tracking-tighter">Live Stream</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/[0.03] border border-white/5">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-stone-50 border border-stone-200">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Protocol_Sync_Stable</span>
+                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Connected</span>
                 </div>
             </div>
 
             {/* Stream Logs */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-mesh bg-opacity-10">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-mesh">
                 <div className="flex flex-col">
                     {Array.isArray(messages) && messages?.map((msg, index) => (
                         <MessageItem key={index} msg={msg} index={index} />
@@ -132,46 +173,54 @@ function ChatView() {
                     )}
 
                     {loading && !streamingContent && (
-                        <div className="p-12 flex flex-col items-center justify-center space-y-6 opacity-40">
-                            <div className="relative">
-                                <div className="h-12 w-12 rounded-2xl border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
-                                <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
-                            </div>
-                            <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em] animate-pulse">Requesting Synthesis...</p>
+                        <div className="p-12 flex flex-col items-center justify-center space-y-6">
+                            <Loader2Icon className="h-8 w-8 text-blue-200 animate-spin" />
+                            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest animate-pulse">Awaiting stream...</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Command Interface */}
-            <div className="p-8 bg-black border-t border-white/5 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-                <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-                    <textarea
-                        placeholder="INPUT NEW SPECIFICATIONS..."
-                        value={userInput}
-                        aria-label="New Message Input"
-                        onChange={(event) => setUserInput(event.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                if (userInput.trim() && !loading) onGenerate(userInput);
-                            }
-                        }}
-                        className="relative w-full bg-surface-secondary/50 border border-white/5 rounded-xl p-6 pr-16 text-sm text-white placeholder-slate-700 focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/20 transition-all duration-300 resize-none h-32 font-medium"
-                    />
-                    <button
-                        onClick={() => onGenerate(userInput)}
-                        disabled={!userInput.trim() || loading}
-                        aria-label="Send Message for Synthesis"
-                        className={`absolute right-4 bottom-4 p-3 rounded-xl transition-all duration-500 ${
-                            userInput.trim() && !loading
-                                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] scale-100 hover:scale-105 hover:bg-blue-500'
-                                : 'bg-white/5 text-slate-800 scale-95 opacity-50 cursor-not-allowed'
-                        }`}
-                    >
-                        <Send className="h-5 w-5" />
-                    </button>
+            <div className="px-8 pb-8 bg-transparent">
+                <div className="max-w-4xl mx-auto relative group">
+                    <div className="absolute -inset-1 bg-blue-600/5 rounded-[28px] blur-xl opacity-0 group-focus-within:opacity-100 transition duration-1000" />
+                    <div className="relative flex items-center bg-white/80 backdrop-blur-3xl border border-stone-200 rounded-[24px] p-2 pr-4 shadow-xl">
+                        <textarea
+                            placeholder="Type a message..."
+                            value={userInput}
+                            aria-label="New Message Input"
+                            onChange={(event) => setUserInput(event.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (userInput.trim() && !loading) onGenerate(userInput);
+                                }
+                            }}
+                            className="w-full bg-transparent border-none p-4 text-sm text-stone-800 placeholder-stone-400 focus:outline-none resize-none h-14 font-medium custom-scrollbar"
+                        />
+                        <button
+                            onClick={() => onGenerate(userInput)}
+                            disabled={!userInput.trim() || loading}
+                            aria-label="Send Message for Synthesis"
+                            className={`flex-shrink-0 p-3 rounded-2xl transition-all duration-500 ${
+                                userInput.trim() && !loading
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-100 hover:scale-105 hover:bg-blue-700'
+                                    : 'bg-stone-100 text-stone-400 scale-95 opacity-50'
+                            }`}
+                        >
+                            {loading ? <Loader2Icon className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                        </button>
+                        {loading && (
+                            <button
+                                onClick={onStop}
+                                aria-label="Stop generation"
+                                className="flex-shrink-0 ml-2 p-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white transition-all duration-300"
+                            >
+                                <Square className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-2">

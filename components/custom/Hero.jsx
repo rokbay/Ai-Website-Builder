@@ -100,20 +100,20 @@ function Hero() {
                         <div className="flex items-center justify-center gap-4 mb-4">
                             <div className="px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
                                 <Cpu className="h-3 w-3 text-blue-400" />
-                                <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.4em]">Engine v2.0 // Local Core</span>
+                                <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.4em]">Bolt Engine // Core</span>
                             </div>
                             <div className="px-4 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
                                 <Shield className="h-3 w-3 text-emerald-400" />
-                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.4em]">Secure Environment</span>
+                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.4em]">Distributed Env</span>
                             </div>
                         </div>
 
                         <h1 className="text-6xl md:text-[7rem] font-black text-white leading-[0.85] tracking-tighter">
-                            SYNTHESIZE<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-200">PROJECTS.</span>
+                            BOLT<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-200">ENGINE.</span>
                         </h1>
                         <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed uppercase tracking-tighter">
-                            Initialize high-fidelity digital architectures using accelerated neural synthesis and local-first compute.
+                            Real-time distributed AI synthesis system with streaming architecture, IPC, and fault-tolerant connectivity.
                         </p>
                     </div>
 
@@ -127,7 +127,7 @@ function Hero() {
                                         <div className="flex items-center gap-3">
                                             <Terminal className="h-4 w-4 text-slate-500" />
                                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">
-                                                Neural Input Interface // Prompt_v.2.1
+                                                Stream Input
                                             </label>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -150,7 +150,7 @@ function Hero() {
                                             <button
                                                 onClick={enhancePrompt}
                                                 disabled={isEnhancing || !userInput}
-                                                aria-label="Enhance Prompt via Neural Synthesizer"
+                                                aria-label="Enhance Input"
                                                 className={`flex items-center justify-center rounded-xl h-24 w-24 transition-all duration-300 active:scale-95 border border-white/5 ${isEnhancing ? 'bg-white/5 opacity-50' : 'bg-white/5 hover:bg-white/10 hover:border-blue-500/30 shadow-blue-500/10 hover:shadow-xl'}`}
                                             >
                                                 {isEnhancing ? (
@@ -162,7 +162,7 @@ function Hero() {
                                             <button
                                                 onClick={() => onGenerate(userInput)}
                                                 disabled={isEnhancing || !userInput}
-                                                aria-label="Execute Neural Synthesis"
+                                                aria-label="Execute Synthesis"
                                                 className={`flex items-center justify-center rounded-xl flex-1 w-24 transition-all duration-300 active:scale-95 border ${!userInput ? 'bg-slate-900 border-white/5 opacity-30 cursor-not-allowed' : 'bg-blue-600 border-blue-500 hover:bg-blue-500 hover:spec-glow-blue hover:shadow-blue-500/20 shadow-lg'}`}
                                             >
                                                 <Send className="h-8 w-8 text-white" />

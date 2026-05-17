@@ -33,7 +33,7 @@ export default function SettingsModal() {
         const updated = { ...settings, ...newSettings };
         setSettingsState(updated);
         localStorage.setItem('app_settings', JSON.stringify(updated));
-        notificationSystem.notify(EVENTS.STATUS_UPDATE, { message: 'Preferences updated locally', severity: 'info' });
+       notificationSystem.publish(EVENTS.STATUS_UPDATE, { message: 'Preferences updated locally', severity: 'info' });
     };
 
     const handleSaveApiKey = async () => {
@@ -44,7 +44,7 @@ export default function SettingsModal() {
             if (typeof window !== 'undefined' && window.webMessageBridge?.request) {
                 const result = await window.webMessageBridge.request('saveGeminiApiKey', { apiKey });
                 if (result.status === 'success') {
-                    notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+                    notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                         message: 'API Key persisted to .env.local via .NET Bridge',
                         severity: 'success'
                     });
@@ -53,13 +53,13 @@ export default function SettingsModal() {
                     throw new Error(result.message);
                 }
             } else {
-                notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+                notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                     message: 'Manual Action Required: Update .env.local with your key',
                     severity: 'warning'
                 });
             }
         } catch (error) {
-            notificationSystem.notify(EVENTS.STATUS_UPDATE, {
+            notificationSystem.publish(EVENTS.STATUS_UPDATE, {
                 message: `Failed to save API key: ${error.message}`,
                 severity: 'error'
             });
@@ -71,17 +71,17 @@ export default function SettingsModal() {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="w-full max-w-xl holographic-card p-1 animate-in zoom-in-95 duration-300">
-                <div className="bg-slate-900 rounded-[14px] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-stone-900/20 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="w-full max-w-xl p-1 animate-in zoom-in-95 duration-300">
+                <div className="bg-white rounded-[32px] border border-stone-200 overflow-hidden flex flex-col shadow-2xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-slate-900/40">
+                    <div className="flex items-center justify-between px-8 py-6 border-b border-stone-100 bg-stone-50/50">
                         <div className="flex items-center gap-3">
-                            <Settings className="h-5 w-5 text-blue-400" />
-                            <h2 className="text-sm font-black text-white tracking-[0.2em] uppercase">Engine Calibration</h2>
+                            <Settings className="h-5 w-5 text-blue-600" />
+                            <h2 className="text-xs font-black text-stone-800 tracking-[0.2em] uppercase">Engine Settings</h2>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                            <X className="h-5 w-5 text-slate-400" />
+                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-stone-200/50 rounded-xl transition-colors">
+                            <X className="h-5 w-5 text-stone-400" />
                         </button>
                     </div>
 
@@ -89,11 +89,11 @@ export default function SettingsModal() {
                         {/* AI API KEY */}
                         <section className="space-y-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <Key className="h-4 w-4 text-amber-400" />
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Authentication Gateway</h3>
+                                <Key className="h-4 w-4 text-stone-400" />
+                                <h3 className="text-[10px] font-black text-stone-800 uppercase tracking-[0.2em]">API Key</h3>
                             </div>
-                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                                Enter your Gemini API Key to enable neural processing. This will be persisted to your local <span className="text-amber-500/80 font-mono">.env.local</span> file via the .NET transport layer.
+                            <p className="text-[11px] text-stone-500 font-medium leading-relaxed">
+                                Enter your Gemini API Key to enable neural processing.
                             </p>
                             <div className="flex gap-3">
                                 <input
@@ -101,12 +101,12 @@ export default function SettingsModal() {
                                     value={apiKey}
                                     onChange={(e) => setApiKey(e.target.value)}
                                     placeholder="Enter Gemini API Key..."
-                                    className="flex-1 glass-input text-xs font-mono"
+                                    className="flex-1 glass-input text-xs font-mono border-stone-200 bg-stone-50"
                                 />
                                 <button
                                     onClick={handleSaveApiKey}
                                     disabled={!apiKey || isSaving}
-                                    className="glass-button bg-amber-500/10 text-amber-400 border-amber-500/30 px-4 hover:bg-amber-500/20 disabled:opacity-30"
+                                    className="glass-button bg-blue-600 text-white border-blue-600 px-6 hover:bg-blue-700 disabled:opacity-30"
                                 >
                                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                                 </button>
@@ -116,34 +116,34 @@ export default function SettingsModal() {
                         {/* AI MODEL */}
                         <section className="space-y-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <Cpu className="h-4 w-4 text-blue-400" />
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Model Architecture</h3>
+                                <Cpu className="h-4 w-4 text-blue-600" />
+                                <h3 className="text-[10px] font-black text-stone-800 uppercase tracking-[0.2em]">Model Intelligence</h3>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Selected Brain</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Active Brain</label>
                                     <select
                                         value={settings.aiModel}
                                         onChange={(e) => updateSettings({ aiModel: e.target.value })}
-                                        className="w-full glass-input text-xs"
+                                        className="w-full glass-input text-xs border-stone-200 bg-stone-50"
                                     >
-                                        <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash Lite (Optimized)</option>
-                                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest)</option>
-                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Logic)</option>
-                                        <option value="lmstudio">LM Studio (Local Host)</option>
+                                        <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash Lite</option>
+                                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                        <option value="lmstudio">LM Studio (Local)</option>
                                     </select>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Creativity Bias</label>
-                                        <span className="text-[9px] font-mono text-blue-400">{settings.temperature}</span>
+                                        <label className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Creativity</label>
+                                        <span className="text-[10px] font-black text-blue-600">{settings.temperature}</span>
                                     </div>
                                     <input
                                         type="range"
                                         min="0" max="1" step="0.1"
                                         value={settings.temperature}
                                         onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
-                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                        className="w-full h-1 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                     />
                                 </div>
                             </div>
@@ -152,22 +152,22 @@ export default function SettingsModal() {
                         {/* APPEARANCE */}
                         <section className="space-y-4 pb-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <Monitor className="h-4 w-4 text-indigo-400" />
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Visual Interface</h3>
+                                <Monitor className="h-4 w-4 text-stone-400" />
+                                <h3 className="text-[10px] font-black text-stone-800 uppercase tracking-[0.2em]">Interface</h3>
                             </div>
-                            <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                            <div className="flex gap-2 p-1 bg-stone-100 rounded-2xl border border-stone-200">
                                 {[
-                                    { id: 'dark', icon: Moon, label: 'Standard' },
-                                    { id: 'light', icon: Sun, label: 'High-Contrast' },
+                                    { id: 'light', icon: Sun, label: 'Light' },
+                                    { id: 'dark', icon: Moon, label: 'Dark' },
                                     { id: 'system', icon: Monitor, label: 'System' }
                                 ].map((t) => (
                                     <button
                                         key={t.id}
                                         onClick={() => setTheme(t.id)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                             theme === t.id
-                                                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                                                : 'text-slate-500 hover:text-slate-300'
+                                                ? 'bg-white text-blue-600 shadow-sm'
+                                                : 'text-stone-400 hover:text-stone-600'
                                         }`}
                                     >
                                         <t.icon className="h-3.5 w-3.5" />
@@ -179,16 +179,16 @@ export default function SettingsModal() {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-8 py-5 border-t border-white/5 bg-slate-900/40 flex items-center justify-between">
+                    <div className="px-8 py-6 border-t border-stone-100 bg-stone-50/50 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <AlertCircle className="h-3.5 w-3.5 text-slate-600" />
-                            <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Some changes may require a page reload</span>
+                            <AlertCircle className="h-3.5 w-3.5 text-stone-400" />
+                            <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest italic">Sync active</span>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="px-6 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white transition-all border border-white/10"
+                            className="px-8 py-3 rounded-2xl bg-stone-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-stone-800 transition-all shadow-lg shadow-stone-200"
                         >
-                            Sync & Close
+                            Apply & Exit
                         </button>
                     </div>
                 </div>

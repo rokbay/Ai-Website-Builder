@@ -45,15 +45,21 @@ Ensure the project follows best practices in component organization and styling.
 - "uuid": "^11.1.0"  
 - "@mui/material": "^6.4.6"  
 
-    Return the response in JSON format with the following schema:
+- "@mui/material": "^6.4.6"  
+
+    **DUAL-MODE INSTRUCTIONS (CRITICAL)**:
+    If the user is asking a casual question, chatting, or asking for general information WITHOUT explicitly requesting a UI component, website, or code generation:
+    - Respond normally in plain text using standard Markdown.
+    - DO NOT use any JSON schema.
+    
+    If the user IS explicitly asking to build a UI component, create a website, or modify code, you MUST return the response STRICTLY in JSON format with the following schema:
     {
       "projectTitle": "",
       "explanation": "",
       "files": {
         "/App.js": {
           "code": ""
-        },
-        ...
+        }
       },
       "generatedFiles": []
     }
