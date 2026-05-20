@@ -13,7 +13,7 @@ function buildComponentTree(files) {
         const code = typeof content === 'string' ? content : content?.code ?? '';
         if (!code) continue;
 
-        const exports = [...code.matchAll(/export\s+(?:default\s+)?(?:function|const|class)\s+([A-Z][a-zA-Z0-9_]*)/g)];
+        const exports = [...code.matchAll(/(?:function|const|class)\s+([A-Z][a-zA-Z0-9_]*)\s*(?:=|extends|\()/g)];
         if (exports.length === 0) continue;
 
         const usedComponents = [...new Set(

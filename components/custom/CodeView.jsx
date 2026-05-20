@@ -28,8 +28,6 @@ function CodeView({ initialFileData }) {
     const [streamingContent, setStreamingContent] = useState('');
     const [isDotNetStreaming, setIsDotNetStreaming] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false); // Task 3: generation overlay
-    const [showPreviewPane, setShowPreviewPane] = useState(false); // Task 2: run button
-    const [previewHtml, setPreviewHtml] = useState('');           // Task 4: iframe html
     const editorScrollRef = useRef(null);
     const STREAMING_FILE = '/index.js';
 
@@ -99,46 +97,10 @@ function CodeView({ initialFileData }) {
         });
     }, [extractFilesFromText]);
 
-    // Task 4: Build iframe HTML from files using factory method pattern
-    const buildPreviewHtml = useCallback((currentFiles) => {
-        // Extract the main App code
-        const appFile = currentFiles['/App.js'] || currentFiles['/app.js'];
-        const cssFile = currentFiles['/App.css'] || currentFiles['/styles.css'] || currentFiles['/index.css'];
-        const appCode = appFile?.code || '';
-        const cssCode = cssFile?.code || '';
-
-        // Factory: produce a self-contained HTML document that bootstraps React
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preview</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>${cssCode}</style>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel">
-    ${appCode}
-    const rootEl = document.getElementById('root');
-    const root = ReactDOM.createRoot(rootEl);
-    root.render(React.createElement(App));
-  </script>
-</body>
-</html>`;
-    }, []);
-
-    // Task 2: Run button handler — builds HTML and shows preview pane
+    // Task 2: Run button handler
     const handleRun = useCallback(() => {
-        const html = buildPreviewHtml(files);
-        setPreviewHtml(html);
-        setShowPreviewPane(true);
         setActiveTab('preview');
-    }, [files, buildPreviewHtml]);
+    }, []);
 
     useEffect(() => {
         let buffer = [];
@@ -339,23 +301,13 @@ function CodeView({ initialFileData }) {
                         )}
                         {activeTab === 'preview' && (
                             <div className="flex-1 bg-white relative h-full overflow-hidden">
-                                {/* Task 4: Factory iframe — uses buildPreviewHtml output via srcdoc */}
-                                {showPreviewPane && previewHtml ? (
-                                    <iframe
-                                        srcDoc={previewHtml}
-                                        title="DOM Preview"
-                                        className="w-full h-full border-0"
-                                        sandbox="allow-scripts allow-same-origin"
-                                    />
-                                ) : (
-                                    <SandpackPreview
-                                        style={{ height: '100%', flex: 1 }}
-                                        showNavigator={false}
-                                        showOpenInCodeSandbox={false}
-                                        showRefreshButton={true}
-                                        actionsChildren={null}
-                                    />
-                                )}
+                                <SandpackPreview
+                                    style={{ height: '100%', flex: 1 }}
+                                    showNavigator={false}
+                                    showOpenInCodeSandbox={false}
+                                    showRefreshButton={true}
+                                    actionsChildren={null}
+                                />
                             </div>
                         )}
                         {activeTab === 'structure' && (
