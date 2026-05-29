@@ -29,7 +29,7 @@ function CodeView({ initialFileData }) {
     const [isDotNetStreaming, setIsDotNetStreaming] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false); // Task 3: generation overlay
     const editorScrollRef = useRef(null);
-    const STREAMING_FILE = '/index.js';
+    const STREAMING_FILE = '/.stream-buffer.js';
 
     const proTheme = useMemo(() => ({
         colors: {

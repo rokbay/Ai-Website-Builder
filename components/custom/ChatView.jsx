@@ -3,7 +3,7 @@ import { MessagesContext } from '@/context/MessagesContext';
 import { useConvex, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
-import { useContext, useEffect, useState, useCallback, memo } from 'react';
+import { useContext, useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Loader2Icon, Send, Terminal, Cpu, Zap, Square } from "lucide-react";
 import { notificationSystem, EVENTS } from '@/lib/NotificationSystem';
 import { aiProviderManager } from '@/lib/AiProviderManager';
@@ -57,6 +57,11 @@ function ChatView() {
     const [abortController, setAbortController] = useState(null);
     const UpdateMessages = useMutation(api.workspace.UpdateWorkspace);
     const setStreamingStatus = useMutation(api.workspace.SetStreamingStatus);
+    const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, streamingContent]);
 
     const GetAiResponse = useCallback(async () => {
         const nextMessages = [...messages];
@@ -178,6 +183,7 @@ function ChatView() {
                             <p className="text-xs font-bold text-stone-400 uppercase tracking-widest animate-pulse">Awaiting stream...</p>
                         </div>
                     )}
+                    <div ref={messagesEndRef} />
                 </div>
             </div>
 
